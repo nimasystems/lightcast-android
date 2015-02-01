@@ -1,0 +1,10 @@
+package com.nimasystems.lightcast.ui.listview;
+
+import android.widget.ListAdapter;
+
+import java.util.List;
+
+public interface EndlessAdapter extends ListAdapter {
+
+    public void addItems(List<?> items);
+}
