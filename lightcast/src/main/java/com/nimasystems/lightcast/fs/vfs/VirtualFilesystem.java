@@ -56,6 +56,7 @@ public class VirtualFilesystem {
                     "Directory not valid or not readable / writable");
         }
 
+        //noinspection ResultOfMethodCallIgnored
         d.mkdirs();
 
         String currentDir = null;
@@ -99,8 +100,6 @@ public class VirtualFilesystem {
         this.mCurrentDir = currentDir;
         this.mCurrentFileCount = currentFilesCount;
 
-        assert !StringUtils.isNullOrEmpty(currentDir) : "Invalid current dir";
-
         mInitialized = true;
 
         mLogger.info("Virtual filesystem initialized with base path: " + this.mBasePath);
@@ -137,8 +136,15 @@ public class VirtualFilesystem {
         // try to read the file
         FileInputStream inp = new FileInputStream(physicalFilename);
         byte[] fileData = null;
-        inp.read(fileData);
-        inp.close();
+
+        try {
+            //noinspection ConstantConditions
+            if (inp.read(fileData) <= 0) {
+                throw new IOException("Could not read data");
+            }
+        } finally {
+            inp.close();
+        }
 
         return this.writeFile(fileData, actualFilename, fileExtension);
     }
@@ -173,14 +179,16 @@ public class VirtualFilesystem {
             mCurrentFileCount = 0;
         }
 
-        assert !StringUtils.isNullOrEmpty(mCurrentDir) : "Null current dir";
-
         String fullFilePath = this.getFullFilename(mCurrentDir, fileHash,
                 fileExtension);
         File f = new File(fullFilePath);
 
         // try to create the target dir
-        f.mkdirs();
+        if (!f.exists()) {
+            if (!f.mkdirs()) {
+                throw new IOException("Could not create target directory");
+            }
+        }
 
         vfile = new VirtualFile();
         vfile.fileId = 0;
@@ -204,7 +212,6 @@ public class VirtualFilesystem {
                             vfile.fileHash});
 
             vfile.fileId = (int) DbUtils.getLastInsertedId(mDb);
-            assert vfile.fileId > 0 : "Null file id";
 
             // copy the file now
             FileOutputStream fos = new FileOutputStream(fullFilePath);
@@ -258,7 +265,7 @@ public class VirtualFilesystem {
         return f;
     }
 
-    public void deleteFile(int fileId) throws InvalidParamsException,
+    public boolean deleteFile(int fileId) throws InvalidParamsException,
             NotAvailableException, IOException {
 
         if (!mInitialized) {
@@ -276,6 +283,13 @@ public class VirtualFilesystem {
         // delete the file
         String fp = vf.getPhysicalPath(this.mBasePath);
         File f = new File(fp);
-        f.delete();
+
+        if (f.exists()) {
+            if (!f.delete()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

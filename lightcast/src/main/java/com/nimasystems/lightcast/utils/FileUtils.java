@@ -13,7 +13,7 @@ import java.nio.channels.FileChannel;
 
 public class FileUtils {
 
-    public static void deleteDirectoryRecursively(File dir, boolean emptyTopDir) {
+    public static boolean deleteDirectoryRecursively(File dir, boolean emptyTopDir) {
 
         if (dir.isDirectory()) {
             String[] children = dir.list();
@@ -21,16 +21,25 @@ public class FileUtils {
                 File child = new File(dir, aChildren);
                 if (child.isDirectory()) {
                     deleteDirectoryRecursively(child, false);
-                    child.delete();
+
+                    if (!child.delete()) {
+                        return false;
+                    }
                 } else {
-                    child.delete();
+                    if (!child.delete()) {
+                        return false;
+                    }
                 }
             }
 
             if (!emptyTopDir) {
-                dir.delete();
+                if (!dir.delete()) {
+                    return false;
+                }
             }
         }
+
+        return true;
     }
 
     public static String getMimetype(String filepath) {
@@ -60,7 +69,7 @@ public class FileUtils {
     }
 
     public static String returnMemoryMappedFileContents(File file, int lines)
-            throws FileNotFoundException, IOException {
+            throws IOException {
         FileInputStream fileInputStream = new FileInputStream(file);
         String ret = null;
         try {

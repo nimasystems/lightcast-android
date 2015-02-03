@@ -22,9 +22,6 @@ public class DbUtils {
         }
         CharSequence c = DateFormat.format("yyyy-MM-dd kk:mm:ss",
                 date.getTime());
-        if (c == null) {
-            return NULL;
-        }
         String ret = c.toString();
         ret = (ret == null) ? NULL : ret;
         return ret;

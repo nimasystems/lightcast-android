@@ -16,6 +16,8 @@
 
 package com.nimasystems.cache;
 
+import android.support.annotation.NonNull;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.Closeable;
@@ -144,7 +146,7 @@ public final class DiskLruCache implements Closeable {
      * be deleted if it exists when the cache is opened.
      */
     private final int valueCount;
-    private final LinkedHashMap<String, Entry> lruEntries = new LinkedHashMap<String, Entry>(
+    private final LinkedHashMap<String, Entry> lruEntries = new LinkedHashMap<>(
             0, 0.75f, true);
     /**
      * This cache uses a single background thread to evict entries.
@@ -207,7 +209,7 @@ public final class DiskLruCache implements Closeable {
     }
 
     /* XXX From libcore.io.IoUtils */
-    private static void deleteContents(File dir) throws IOException {
+    private static void deleteContents(File dir) {
         File[] files = dir.listFiles();
         if (files == null) {
             throw new IllegalArgumentException("not a directory: " + dir);
@@ -216,6 +218,7 @@ public final class DiskLruCache implements Closeable {
             if (file.isDirectory()) {
                 deleteContents(file);
             }
+            //noinspection ResultOfMethodCallIgnored
             file.delete();
         }
     }
@@ -273,7 +276,7 @@ public final class DiskLruCache implements Closeable {
      * there.
      *
      * @param directory  a writable directory
-     * @param appVersion
+     * @param appVersion the version of the app
      * @param valueCount the number of values per cache entry. Must be positive.
      * @param maxSize    the maximum number of bytes this cache should use to store
      * @throws IOException if reading or writing the cache directory fails
@@ -306,6 +309,7 @@ public final class DiskLruCache implements Closeable {
         }
 
         // create a new empty cache
+        //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
         cache = new DiskLruCache(directory, appVersion, valueCount, maxSize);
         cache.rebuildJournal();
@@ -386,10 +390,10 @@ public final class DiskLruCache implements Closeable {
             entry.currentEditor = new Editor(entry);
         } else //noinspection StatementWithEmptyBody
             if (parts[0].equals(READ) && parts.length == 2) {
-            // this work was already done by calling lruEntries.get()
-        } else {
-            throw new IOException("unexpected journal line: " + line);
-        }
+                // this work was already done by calling lruEntries.get()
+            } else {
+                throw new IOException("unexpected journal line: " + line);
+            }
     }
 
     /**
@@ -445,6 +449,7 @@ public final class DiskLruCache implements Closeable {
         }
 
         writer.close();
+        //noinspection ResultOfMethodCallIgnored
         journalFileTmp.renameTo(journalFile);
         journalWriter = new BufferedWriter(new FileWriter(journalFile, true));
     }
@@ -467,7 +472,7 @@ public final class DiskLruCache implements Closeable {
         }
 
 		/*
-		 * Open all streams eagerly to guarantee that we see a single published
+         * Open all streams eagerly to guarantee that we see a single published
 		 * snapshot. If we opened streams lazily then the streams could come
 		 * from different edits.
 		 */
@@ -571,6 +576,7 @@ public final class DiskLruCache implements Closeable {
             if (success) {
                 if (dirty.exists()) {
                     File clean = entry.getCleanFile(i);
+                    //noinspection ResultOfMethodCallIgnored
                     dirty.renameTo(clean);
                     long oldLength = entry.lengths[i];
                     long newLength = clean.length();
@@ -700,7 +706,7 @@ public final class DiskLruCache implements Closeable {
      */
     public void delete() throws IOException {
         close();
-		/* IoUtils. */
+        /* IoUtils. */
         deleteContents(directory);
     }
 
@@ -863,7 +869,7 @@ public final class DiskLruCache implements Closeable {
             }
 
             @Override
-            public void write(byte[] buffer, int offset, int length) {
+            public void write(@NonNull byte[] buffer, int offset, int length) {
                 try {
                     out.write(buffer, offset, length);
                 } catch (IOException e) {
@@ -920,7 +926,7 @@ public final class DiskLruCache implements Closeable {
             this.lengths = new long[valueCount];
         }
 
-        public String getLengths() throws IOException {
+        public String getLengths() {
             StringBuilder result = new StringBuilder();
             for (long size : lengths) {
                 result.append(' ').append(size);

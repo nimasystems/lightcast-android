@@ -36,8 +36,6 @@ import com.nimasystems.lightcast.exceptions.Base64DecoderException;
 /**
  * Base64 converter class. This code is not a complete MIME encoder;
  * it simply converts binary data to base64 data and back.
- * <p/>
- * <p>Note {@link CharBase64} is a GWT-compatible implementation of this
  * class.
  */
 public class Base64 {
@@ -352,10 +350,10 @@ public class Base64 {
                 outBuff[e + 4] = NEW_LINE;
                 e++;
             }
+            //noinspection UnusedAssignment
             e += 4;
         }
 
-        assert (e == outBuff.length);
         return outBuff;
     }
 
@@ -537,7 +535,8 @@ public class Base64 {
                         if (b4Posn == 0 || b4Posn == 1) {
                             throw new Base64DecoderException(
                                     "invalid padding byte '=' at byte offset " + i);
-                        } else if ((b4Posn == 3 && bytesLeft > 2)
+                        } else //noinspection ConstantConditions
+                            if ((b4Posn == 3 && bytesLeft > 2)
                                 || (b4Posn == 4 && bytesLeft > 1)) {
                             throw new Base64DecoderException(
                                     "padding byte '=' falsely signals end of encoded value "

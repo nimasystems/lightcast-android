@@ -204,6 +204,7 @@ public class LruCache<K, V> {
      *                 removal was caused by a {@link #put}. Otherwise it was caused
      *                 by an eviction or a {@link #remove}.
      */
+    @SuppressWarnings("EmptyMethod")
     protected void entryRemoved(boolean evicted, K key, V oldValue, V newValue) {
     }
 

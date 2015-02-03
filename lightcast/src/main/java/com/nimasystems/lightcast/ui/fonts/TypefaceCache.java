@@ -9,7 +9,7 @@ import java.util.TreeMap;
 public class TypefaceCache {
 
     private static TypefaceCache typefaceSingleton;
-    private TreeMap<String, Typeface> fontCache = new TreeMap<String, Typeface>();
+    private TreeMap<String, Typeface> fontCache = new TreeMap<>();
 
     public static TypefaceCache getSingleton() {
         if (typefaceSingleton == null) {

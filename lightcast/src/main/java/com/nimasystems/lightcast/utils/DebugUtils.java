@@ -6,7 +6,7 @@ import com.nimasystems.lightcast.debug.DebugUtil;
 
 public class DebugUtils {
 
-    public static void ass(boolean condition, String message) {
+    public static void ass(boolean condition, @SuppressWarnings("UnusedParameters") String message) {
         if (!condition) {
             Log.e("SYS", "ASSERT FAILED!!!");
             DebugUtil.printCurrentStackTrace();

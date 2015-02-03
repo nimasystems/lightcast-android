@@ -38,7 +38,7 @@ import java.util.TimeZone;
 
 abstract public class ApiCallBase {
 
-    public static final String DEFAULT_REQUEST_CHARSET = "UTF-8";
+    private static final String DEFAULT_REQUEST_CHARSET = "UTF-8";
     public static final int DEFAULT_MAX_RETRIES = 3;
 
     public static final String XDG_HEADER_NAME = "X-Dg";
@@ -125,59 +125,57 @@ abstract public class ApiCallBase {
 
     protected static ApiServerErrorModel parseResponseForError(String response) {
 
-        ApiServerErrorModel err = null;
+        ApiServerErrorModel err;
 
         if (response != null) {
 
             try {
                 JSONObject obj = new JSONObject(response);
 
-                if (obj != null) {
-                    if (obj.has("error")) {
-                        JSONObject objError = obj.optJSONObject("error");
+                if (obj.has("error")) {
+                    JSONObject objError = obj.optJSONObject("error");
 
-                        if (objError != null) {
-                            String domain = objError.optString("domain");
-                            Integer code = objError.optInt("code");
-                            String message = objError.optString("message");
+                    if (objError != null) {
+                        String domain = objError.optString("domain");
+                        Integer code = objError.optInt("code");
+                        String message = objError.optString("message");
 
-                            err = new ApiServerErrorModel();
-                            err.code = code;
-                            err.domainName = domain;
-                            err.message = message;
+                        err = new ApiServerErrorModel();
+                        err.code = code;
+                        err.domainName = domain;
+                        err.message = message;
 
-                            // validation errors
-                            JSONObject vJErrs = objError
-                                    .optJSONObject("validation_errors");
-                            if (vJErrs != null) {
-                                ArrayList<ApiServerValidationError> vErrs = new ArrayList<>();
-                                ApiServerValidationError verr = new ApiServerValidationError();
-                                String errorMessage = "\nValidation Errors\n\n";
+                        // validation errors
+                        JSONObject vJErrs = objError
+                                .optJSONObject("validation_errors");
+                        if (vJErrs != null) {
+                            ArrayList<ApiServerValidationError> vErrs = new ArrayList<>();
+                            ApiServerValidationError verr = new ApiServerValidationError();
+                            String errorMessage = "\nValidation Errors\n\n";
 
-                                Iterator<?> keys = vJErrs.keys();
-                                while (keys.hasNext()) {
-                                    String key = (String) keys.next();
-                                    String error = vJErrs.optString(key);
-                                    errorMessage = errorMessage + key + ": "
-                                            + error + "\n";
-                                }
-
-                                verr.message = errorMessage;
-                                vErrs.add(verr);
-
-                                err.validationErrors = vErrs;
+                            Iterator<?> keys = vJErrs.keys();
+                            while (keys.hasNext()) {
+                                String key = (String) keys.next();
+                                String error = vJErrs.optString(key);
+                                errorMessage = errorMessage + key + ": "
+                                        + error + "\n";
                             }
 
-                            return err;
+                            verr.message = errorMessage;
+                            vErrs.add(verr);
+
+                            err.validationErrors = vErrs;
                         }
+
+                        return err;
                     }
                 }
             } catch (JSONException e) {
-                err = null;
+                e.printStackTrace();
             }
         }
 
-        return err;
+        return null;
     }
 
     abstract protected boolean parseResponse(String response);
@@ -485,8 +483,8 @@ abstract public class ApiCallBase {
         ac = (ac != null) ? ac.replace('_', '-') : null;
 
         if (!StringUtils.isNullOrEmpty(ac)) {
-            mRequestHeaders.add(new BasicHeader("Accept-Language", ac
-                    .toLowerCase(Locale.US)));
+            mRequestHeaders.add(new BasicHeader("Accept-Language", ac != null ? ac
+                    .toLowerCase(Locale.US) : null));
         }
     }
 
@@ -516,7 +514,7 @@ abstract public class ApiCallBase {
     }
 
     protected void onConnectionFailure(int statusCode, Header[] headers,
-                                       byte[] responseBody, Throwable error) {
+                                       byte[] responseBody, @SuppressWarnings("UnusedParameters") Throwable error) {
         mResponseStatusCode = statusCode;
         mResponseHeaders = makeResponseHeaders(headers);
         mResponseBody = responseBody;
@@ -689,7 +687,7 @@ abstract public class ApiCallBase {
 
     protected boolean executeInternal(boolean synchronous,
                                       String serverHostname, String serverAddress, boolean useSSL)
-            throws IOException, SysConnectException {
+            throws IOException {
 
         if (StringUtils.isNullOrEmpty(serverHostname)) {
             if (mDebug) {
@@ -760,6 +758,7 @@ abstract public class ApiCallBase {
         boolean trustSSL = (!mUseSSL || mSSLTrustAll);
 
         if (synchronous) {
+            //noinspection EmptyMethod
             mAsyncHttpClient = new SyncHttpClient(trustSSL, 80, 443) {
 
                 @Override
@@ -773,6 +772,7 @@ abstract public class ApiCallBase {
                 }
             };
         } else {
+            //noinspection EmptyMethod
             mAsyncHttpClient = new AsyncHttpClient(trustSSL, 80, 443) {
 
                 @Override

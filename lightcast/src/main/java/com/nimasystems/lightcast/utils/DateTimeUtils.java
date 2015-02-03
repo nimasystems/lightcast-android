@@ -103,7 +103,6 @@ public class DateTimeUtils {
             date = df.parse(dateString);
         } catch (ParseException e) {
             e.printStackTrace();
-            assert (false);
             return null;
         }
         if (date != null) {

@@ -54,6 +54,7 @@ public class StorageHelper {
      */
     public boolean isExternalStorageAvailableAndWriteable() {
         checkStorage();
+        //noinspection SimplifiableIfStatement
         if (!externalStorageAvailable) {
             return false;
         } else return externalStorageWriteable;

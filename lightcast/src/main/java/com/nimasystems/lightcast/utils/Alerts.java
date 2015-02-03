@@ -11,7 +11,7 @@ public class Alerts {
                                        final Context context,
                                        DialogInterface.OnClickListener onClickListener) {
         Builder dialog = new AlertDialog.Builder(context);
-        if (!title.equals("") && title != null) {
+        if (!title.equals("")) {
             dialog.setTitle(title);
         }
 

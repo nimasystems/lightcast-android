@@ -112,6 +112,11 @@ public class AppContextUtils {
         } catch (NameNotFoundException e) {
             e.printStackTrace();
         }
+
+        if (pInfo == null) {
+            return null;
+        }
+
         // Dreams/[app_version] ([device brand/type/model]; [device os
         // version]; locale:[current_locale])
         userAgent = (!StringUtils.isNullOrEmpty(appName) ? appName : pInfo.packageName) + "/" + pInfo.versionName + " ( "

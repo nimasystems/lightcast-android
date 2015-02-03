@@ -24,7 +24,7 @@ public class SysUtils {
     /**
      * Get Device Id
      *
-     * @param context
+     * @param context the current context
      * @return device id. If there is not available (tablets and etc.) it
      * returns custom device id.
      */

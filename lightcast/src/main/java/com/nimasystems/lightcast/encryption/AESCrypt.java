@@ -16,7 +16,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class AESCrypt {
 
-    public static final String SEED_16_CHARACTER = "U1MjU1M0FDOUZ.Qz";
+    private static final String SEED_16_CHARACTER = "U1MjU1M0FDOUZ.Qz";
     private final Cipher cipher;
     private final SecretKeySpec key;
     private AlgorithmParameterSpec spec;

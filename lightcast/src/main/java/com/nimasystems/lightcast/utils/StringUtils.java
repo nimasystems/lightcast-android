@@ -20,7 +20,6 @@ public class StringUtils {
      * @param inputArray Array which contains strings
      * @param glueString String between each array element
      * @return String containing all array elements separated by glue string
-     * @author Hendrik Will, imwill.com
      */
     public static String implodeArray(String[] inputArray, String glueString) {
 
@@ -81,10 +80,6 @@ public class StringUtils {
 
         String[] t = str.split(separator);
 
-        if (t == null) {
-            return null;
-        }
-
         for (int i = 0; i <= t.length - 1; i++) {
             ret.add(IntegerUtils.getSafeInteger(t[i]));
         }
@@ -100,10 +95,6 @@ public class StringUtils {
         ArrayList<Long> ret = new ArrayList<>();
 
         String[] t = str.split(separator);
-
-        if (t == null) {
-            return null;
-        }
 
         for (int i = 0; i <= t.length - 1; i++) {
             ret.add(IntegerUtils.getSafeLong(t[i]));

@@ -389,7 +389,7 @@ public class GraphicsUtils {
 
         try {
             if (maxWidth > 0 && maxHeight > 0) {
-                if (imageData != null && imageData.length > 0) {
+                if (imageData.length > 0) {
                     // First decode with inJustDecodeBounds=true to check
                     // dimensions
                     final BitmapFactory.Options options = new BitmapFactory.Options();
