@@ -882,8 +882,7 @@ abstract public class ApiCallBase {
         return startAsyncCall();
     }
 
-    protected boolean makeCall(boolean synchronous) throws IOException,
-            SysConnectException {
+    protected boolean makeCall(boolean synchronous) throws IOException {
 
         // override synchronous if looper not prepared
         if (Looper.myLooper() == null) {

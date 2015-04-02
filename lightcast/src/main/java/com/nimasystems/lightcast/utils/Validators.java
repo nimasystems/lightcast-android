@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 public class Validators {
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     @SuppressLint("NewApi")
     public static boolean isValidEmail(CharSequence target) {
 
