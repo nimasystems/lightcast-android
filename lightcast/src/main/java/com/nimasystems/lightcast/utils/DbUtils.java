@@ -23,6 +23,7 @@ public class DbUtils {
         CharSequence c = DateFormat.format("yyyy-MM-dd kk:mm:ss",
                 date.getTime());
         String ret = c.toString();
+        //noinspection ConstantConditions
         ret = (ret == null) ? NULL : ret;
         return ret;
     }

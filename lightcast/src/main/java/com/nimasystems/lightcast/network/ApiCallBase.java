@@ -483,6 +483,7 @@ abstract public class ApiCallBase {
         ac = (ac != null) ? ac.replace('_', '-') : null;
 
         if (!StringUtils.isNullOrEmpty(ac)) {
+            //noinspection ConstantConditions
             mRequestHeaders.add(new BasicHeader("Accept-Language", ac != null ? ac
                     .toLowerCase(Locale.US) : null));
         }
