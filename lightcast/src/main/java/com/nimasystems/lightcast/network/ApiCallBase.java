@@ -45,6 +45,8 @@ abstract public class ApiCallBase {
     public static final String XAT_HEADER_NAME = "X-At";
     public static final String XTZ_HEADER_NAME = "X-TZ";
 
+    public static final String X_CLIENT_API_LEVEL_HEADER_NAME = "X-LC-Client-Api-Level";
+
     public static final int DEFAULT_CONNECT_TIMEOUT = 20000;
     protected int mConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
     public static final int DEFAULT_READ_TIMEOUT = 20000;
@@ -62,6 +64,7 @@ abstract public class ApiCallBase {
     protected byte[] mResponseBody;
     protected boolean mResponseIsSuccess;
     protected Context mContext;
+    protected int mClientAPILevel;
     protected String mServerHostname;
     protected String mServerAddress;
     protected String mQueryPathPrefix;
@@ -232,6 +235,14 @@ abstract public class ApiCallBase {
                     : qp);
         }
         return ret;
+    }
+
+    public int getClientAPILevel() {
+        return mClientAPILevel;
+    }
+
+    public void setClientAPILevel(int apiLevel) {
+        mClientAPILevel = apiLevel;
     }
 
     public String getHttpAuthUsername() {
@@ -476,6 +487,11 @@ abstract public class ApiCallBase {
 
         if (!StringUtils.isNullOrEmpty(dIdEnc)) {
             mRequestHeaders.add(new BasicHeader(XDG_HEADER_NAME, dIdEnc));
+        }
+
+        // client API Level
+        if (mClientAPILevel > 0) {
+            mRequestHeaders.add(new BasicHeader(X_CLIENT_API_LEVEL_HEADER_NAME, String.valueOf(mClientAPILevel)));
         }
 
         // accept language fixing
