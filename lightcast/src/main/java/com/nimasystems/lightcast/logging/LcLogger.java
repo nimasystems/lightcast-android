@@ -2,15 +2,15 @@ package com.nimasystems.lightcast.logging;
 
 public interface LcLogger {
 
-    public void info(String message);
+    void info(String message);
 
-    public void warn(String message);
+    void warn(String message);
 
-    public void err(String message);
+    void err(String message);
 
-    public void notice(String message);
+    void notice(String message);
 
-    public void crit(String message);
+    void crit(String message);
 
-    public void debug(String message);
+    void debug(String message);
 }

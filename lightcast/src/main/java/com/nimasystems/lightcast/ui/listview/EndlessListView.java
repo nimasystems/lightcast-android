@@ -106,10 +106,10 @@ public class EndlessListView extends ListView implements OnScrollListener {
         this.listener = listener;
     }
 
-    public static interface EndlessListener {
-        public void loadData();
+    public interface EndlessListener {
+        void loadData();
 
-        public boolean canLoadMore();
+        boolean canLoadMore();
     }
 
 }

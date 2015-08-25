@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface EndlessAdapter extends ListAdapter {
 
-    public void addItems(List<?> items);
+    void addItems(List<?> items);
 }

@@ -1,5 +1,6 @@
 package com.nimasystems.lightcast.utils;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -19,7 +20,7 @@ public class SocialNetworks {
     public static String getFacebookKeyHash(Context context) {
         String keyhash = null;
         try {
-            PackageInfo info = context.getPackageManager().getPackageInfo(
+            @SuppressLint("PackageManagerGetSignatures") PackageInfo info = context.getPackageManager().getPackageInfo(
                     context.getApplicationContext().getPackageName(),
                     PackageManager.GET_SIGNATURES);
             for (Signature signature : info.signatures) {

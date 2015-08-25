@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -703,8 +704,7 @@ abstract public class ApiCallBase {
     }
 
     protected boolean executeInternal(boolean synchronous,
-                                      String serverHostname, String serverAddress, boolean useSSL)
-            throws IOException {
+                                      String serverHostname, String serverAddress, boolean useSSL) throws UnsupportedEncodingException {
 
         if (StringUtils.isNullOrEmpty(serverHostname)) {
             if (mDebug) {
