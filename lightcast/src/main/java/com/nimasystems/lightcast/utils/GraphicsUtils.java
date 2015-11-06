@@ -283,6 +283,7 @@ public class GraphicsUtils {
 
             InputStream inp = context.getResources()
                     .openRawResource(resourceId);
+            //noinspection TryFinallyCanBeTryWithResources
             try {
                 byte[] imgBuffer = FileUtils.getBytesFromInputStream(inp);
 

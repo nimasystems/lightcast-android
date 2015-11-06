@@ -17,13 +17,6 @@ import com.nimasystems.lightcast.exceptions.InvalidParamsException;
 import com.nimasystems.lightcast.utils.DebugUtils;
 import com.nimasystems.lightcast.utils.StringUtils;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HttpContext;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -36,6 +29,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.client.methods.HttpUriRequest;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
+import cz.msebera.android.httpclient.message.BasicHeader;
+import cz.msebera.android.httpclient.protocol.HttpContext;
 
 abstract public class ApiCallBase {
 
@@ -775,7 +776,7 @@ abstract public class ApiCallBase {
         boolean trustSSL = (!mUseSSL || mSSLTrustAll);
 
         if (synchronous) {
-            //noinspection EmptyMethod
+            //noinspection EmptyMethod,deprecation
             mAsyncHttpClient = new SyncHttpClient(trustSSL, 80, 443) {
 
                 @Override
@@ -789,7 +790,7 @@ abstract public class ApiCallBase {
                 }
             };
         } else {
-            //noinspection EmptyMethod
+            //noinspection EmptyMethod,deprecation
             mAsyncHttpClient = new AsyncHttpClient(trustSSL, 80, 443) {
 
                 @Override

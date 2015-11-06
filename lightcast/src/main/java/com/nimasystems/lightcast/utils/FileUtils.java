@@ -71,8 +71,10 @@ public class FileUtils {
             throws IOException {
         FileInputStream fileInputStream = new FileInputStream(file);
         String ret = null;
+        //noinspection TryFinallyCanBeTryWithResources
         try {
             FileChannel channel = fileInputStream.getChannel();
+            //noinspection TryFinallyCanBeTryWithResources
             try {
                 ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
                         0, channel.size());

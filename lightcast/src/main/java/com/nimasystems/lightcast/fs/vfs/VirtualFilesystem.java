@@ -137,6 +137,7 @@ public class VirtualFilesystem {
         FileInputStream inp = new FileInputStream(physicalFilename);
         byte[] fileData = null;
 
+        //noinspection TryFinallyCanBeTryWithResources
         try {
             //noinspection ConstantConditions
             if (inp.read(fileData) <= 0) {

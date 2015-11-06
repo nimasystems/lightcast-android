@@ -87,6 +87,7 @@ public class AppContextUtils {
             if (pm.checkPermission(permission.GET_ACCOUNTS,
                     context.getPackageName()) == PackageManager.PERMISSION_GRANTED) {
                 AccountManager accountManager = AccountManager.get(context);
+                //noinspection ResourceType
                 accounts = accountManager.getAccountsByType("com.google");
             }
         } catch (Exception e) {
