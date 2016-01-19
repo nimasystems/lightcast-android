@@ -20,6 +20,38 @@ public class DateTimeUtils {
         return dateToString(date, FORMAT_SQL_LONG);
     }
 
+    public static String dateToUTCSqliteString(Date date) {
+        if (date == null) {
+            return null;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+                Locale.ENGLISH);
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        format.setTimeZone(tz);
+        try {
+            String out = format.format(date);
+            return out;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    public static Date utcStringToDate(String dateStringInUtc) {
+        if (dateStringInUtc == null) {
+            return null;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+                Locale.ENGLISH);
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        format.setTimeZone(tz);
+
+        try {
+            return format.parse(dateStringInUtc);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
     public static String dateTimeToLocaleStringFormat(Context context, Date date) {
         if (date == null || context == null) {
             return null;
