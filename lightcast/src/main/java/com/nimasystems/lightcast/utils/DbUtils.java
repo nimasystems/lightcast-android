@@ -1,5 +1,6 @@
 package com.nimasystems.lightcast.utils;
 
+import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.format.DateFormat;
@@ -44,15 +45,11 @@ public class DbUtils {
     }
 
     public static long getLastInsertedId(SQLiteDatabase db) {
-        long lastIns = 0;
-
-        if (db == null) {
-            return lastIns;
-        }
-
-        String query = "SELECT last_insert_rowid()";
-        lastIns = Integer.parseInt(db.rawQuery(query, null).toString());
-
-        return lastIns;
+        final String MY_QUERY = "SELECT last_insert_rowid()";
+        Cursor cur = db.rawQuery(MY_QUERY, null);
+        cur.moveToFirst();
+        int ID = cur.getInt(0);
+        cur.close();
+        return ID;
     }
 }
