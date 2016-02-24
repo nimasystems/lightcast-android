@@ -296,15 +296,21 @@ abstract public class ApiCallBase {
     }
 
     protected void log(String str) {
-        mLogger.info(mConnectionId + ": " + str);
+        if (mLogger != null) {
+            mLogger.info(mConnectionId + ": " + str);
+        }
     }
 
     protected void logError(String str) {
-        mLogger.error(mConnectionId + ": " + str);
+        if (mLogger != null) {
+            mLogger.error(mConnectionId + ": " + str);
+        }
     }
 
     protected void logDebug(String str) {
-        mLogger.debug(mConnectionId + ": " + str);
+        if (mLogger != null) {
+            mLogger.debug(mConnectionId + ": " + str);
+        }
     }
 
     /**
