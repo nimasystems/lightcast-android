@@ -19,9 +19,8 @@ public class Validators {
         Pattern pattern = Pattern.compile(USERNAME_PATTERN);
 
         Matcher matcher = pattern.matcher(username);
-        Boolean result = matcher.matches();
 
-        return result;
+        return matcher.matches();
     }
 
 }

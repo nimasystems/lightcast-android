@@ -11,12 +11,8 @@ public class ScreenUtils {
     private static Point mScrDimensions;
 
     public static boolean isHighDensity(Context context) {
-        if (context == null) {
-            return false;
-        }
+        return context != null && (context.getResources().getDisplayMetrics().density >= 2);
 
-        boolean ret = (context.getResources().getDisplayMetrics().density >= 2);
-        return ret;
     }
 
     @SuppressWarnings("deprecation")

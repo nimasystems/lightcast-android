@@ -29,15 +29,13 @@ public class IntegerUtils {
 
     public static int getRandomNumber(int min, int max) {
         Random r = new Random();
-        int i1 = r.nextInt(max - min) + min;
-        return i1;
+        return r.nextInt(max - min) + min;
     }
 
     public static int getRandomNumber() {
         int max = Integer.MAX_VALUE;
         int min = Integer.MIN_VALUE;
         Random r = new Random();
-        int i1 = r.nextInt(max - min) + min;
-        return i1;
+        return r.nextInt(max - min) + min;
     }
 }

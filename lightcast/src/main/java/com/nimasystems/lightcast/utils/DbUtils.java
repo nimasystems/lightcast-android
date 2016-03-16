@@ -37,8 +37,7 @@ public class DbUtils {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss", Locale.US);
 
         try {
-            Date date = format.parse(strDate);
-            return date;
+            return format.parse(strDate);
         } catch (java.text.ParseException e) {
             return null;
         }

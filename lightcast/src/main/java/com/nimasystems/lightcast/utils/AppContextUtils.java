@@ -41,10 +41,8 @@ public class AppContextUtils {
         } catch (final NameNotFoundException ignored) {
         }
 
-        String title = (String) (lApplicationInfo != null ? lPackageManager
+        return (String) (lApplicationInfo != null ? lPackageManager
                 .getApplicationLabel(lApplicationInfo) : "");
-
-        return title;
     }
 
     /**
@@ -98,9 +96,7 @@ public class AppContextUtils {
             return null;
         }
 
-        Account currentAccount = accounts[0];
-
-        return currentAccount;
+        return accounts[0];
     }
 
     public static String getUserAgentString(Context context, String appName) {
