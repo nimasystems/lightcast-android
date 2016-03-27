@@ -438,9 +438,7 @@ abstract public class ApiCallBase {
             dId = mEd;
         }
 
-        String dIdEnc = escapeHeaderValue(dId);
-
-        return dIdEnc;
+        return escapeHeaderValue(dId);
     }
 
     protected void disableConnectionReuseIfNecessary() {
@@ -588,8 +586,7 @@ abstract public class ApiCallBase {
 
     public String getResponseHeaderValue(String name) {
         Header header = getResponseHeader(name);
-        String ret = (header != null ? header.getValue() : null);
-        return ret;
+        return (header != null ? header.getValue() : null);
     }
 
     protected void parseResponseHeaders() {
@@ -648,8 +645,7 @@ abstract public class ApiCallBase {
     }
 
     protected boolean isOnMainThread() {
-        boolean t = (Looper.myLooper() == Looper.getMainLooper());
-        return t;
+        return (Looper.myLooper() == Looper.getMainLooper());
     }
 
     protected void parseResponse() {
@@ -701,13 +697,12 @@ abstract public class ApiCallBase {
 
     protected String getConnectionUrl(boolean useSSL, String serverAddress,
                                       String serverHostname, String queryPath, String requestQuery) {
-        String url = (useSSL ? "https://" : "http://")
+        return (useSSL ? "https://" : "http://")
                 + (!StringUtils.isNullOrEmpty(serverAddress) ? serverAddress
                 : serverHostname)
                 + (!StringUtils.isNullOrEmpty(queryPath) ? queryPath : "")
                 + (!StringUtils.isNullOrEmpty(requestQuery) ? "?"
                 + requestQuery : "");
-        return url;
     }
 
     protected boolean executeInternal(boolean synchronous,

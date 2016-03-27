@@ -44,10 +44,9 @@ public class AESCrypt {
     public String encrypt(String plainText) throws Exception {
         cipher.init(Cipher.ENCRYPT_MODE, key, spec);
         byte[] encrypted = cipher.doFinal(plainText.getBytes("UTF-8"));
-        String encryptedText = new String(android.util.Base64.encode(encrypted,
-                android.util.Base64.DEFAULT), "UTF-8");
 
-        return encryptedText;
+        return new String(android.util.Base64.encode(encrypted,
+                android.util.Base64.DEFAULT), "UTF-8");
     }
 
     public String decrypt(String cryptedText) throws Exception {
@@ -55,9 +54,8 @@ public class AESCrypt {
         byte[] bytes = android.util.Base64.decode(cryptedText,
                 android.util.Base64.DEFAULT);
         byte[] decrypted = cipher.doFinal(bytes);
-        String decryptedText = new String(decrypted, "UTF-8");
 
-        return decryptedText;
+        return new String(decrypted, "UTF-8");
     }
 
 }

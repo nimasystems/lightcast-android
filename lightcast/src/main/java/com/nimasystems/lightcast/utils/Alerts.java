@@ -21,8 +21,7 @@ public class Alerts {
 
         dialog.setNeutralButton("OK", onClickListener);
 
-        AlertDialog dia = dialog.create();
-        return dia;
+        return dialog.create();
     }
 
     public static AlertDialog AlertBox(String title, String mymessage,

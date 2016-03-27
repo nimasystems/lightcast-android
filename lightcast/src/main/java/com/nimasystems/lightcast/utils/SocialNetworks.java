@@ -12,9 +12,8 @@ import java.security.MessageDigest;
 public class SocialNetworks {
 
     public static String getGooglePlusUrl(String packageName) {
-        String url = "http://play.google.com/store/apps/details?id="
+        return "http://play.google.com/store/apps/details?id="
                 + packageName;
-        return url;
     }
 
     public static String getFacebookKeyHash(Context context) {

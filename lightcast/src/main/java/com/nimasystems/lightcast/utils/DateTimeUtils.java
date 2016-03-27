@@ -36,8 +36,7 @@ public class DateTimeUtils {
         TimeZone tz = TimeZone.getTimeZone("UTC");
         format.setTimeZone(tz);
         try {
-            String out = format.format(date);
-            return out;
+            return format.format(date);
         } catch (Exception e) {
             return null;
         }
@@ -70,8 +69,7 @@ public class DateTimeUtils {
         java.text.DateFormat timeFormat = android.text.format.DateFormat
                 .getTimeFormat(context);
 
-        String d = dateFormat.format(date) + " " + timeFormat.format(date);
-        return d;
+        return dateFormat.format(date) + " " + timeFormat.format(date);
     }
 
     public static Integer daysBetweenDate(Date fromDateTime, Date toDateTime) {
@@ -102,14 +100,12 @@ public class DateTimeUtils {
             assert false : "invalid params";
             return null;
         }
-        String ret = DateFormat.format(format, date).toString();
-        return ret;
+        return DateFormat.format(format, date).toString();
     }
 
     public static Date getDateFromUnixtime(int unixtime) {
         long time = unixtime * (long) 1000;
-        Date date = new Date(time);
-        return date;
+        return new Date(time);
     }
 
     public static long getUnixTimestamp(Date date, boolean toCurrentTimezone) {
@@ -163,8 +159,7 @@ public class DateTimeUtils {
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
-        long mils = cal.getTimeInMillis();
-        return mils;
+        return cal.getTimeInMillis();
     }
 
     public static Date stringToDateTime(String dateString, Locale locale) {
@@ -175,8 +170,7 @@ public class DateTimeUtils {
                 locale);
 
         try {
-            Date date = format.parse(dateString);
-            return date;
+            return format.parse(dateString);
         } catch (ParseException e) {
             return null;
         }
@@ -189,8 +183,7 @@ public class DateTimeUtils {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss", locale);
 
         try {
-            Date date = format.parse(dateString);
-            return date;
+            return format.parse(dateString);
         } catch (ParseException e) {
             return null;
         }
@@ -203,8 +196,7 @@ public class DateTimeUtils {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", locale);
 
         try {
-            Date date = format.parse(dateString);
-            return date;
+            return format.parse(dateString);
         } catch (ParseException e) {
             return null;
         }
@@ -217,8 +209,7 @@ public class DateTimeUtils {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
                 locale);
         try {
-            String out = format.format(date);
-            return out;
+            return format.format(date);
         } catch (Exception e) {
             return null;
         }
@@ -233,8 +224,7 @@ public class DateTimeUtils {
                 locale);
         format.setTimeZone(timezone);
         try {
-            String out = format.format(date);
-            return out;
+            return format.format(date);
         } catch (Exception e) {
             return null;
         }
@@ -248,8 +238,7 @@ public class DateTimeUtils {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", locale);
         format.setTimeZone(timezone);
         try {
-            String out = format.format(date);
-            return out;
+            return format.format(date);
         } catch (Exception e) {
             return null;
         }
@@ -262,8 +251,7 @@ public class DateTimeUtils {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", locale);
 
         try {
-            String out = format.format(date);
-            return out;
+            return format.format(date);
         } catch (Exception e) {
             return null;
         }
@@ -276,8 +264,7 @@ public class DateTimeUtils {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss", locale);
 
         try {
-            String out = format.format(date);
-            return out;
+            return format.format(date);
         } catch (Exception e) {
             return null;
         }
@@ -290,8 +277,7 @@ public class DateTimeUtils {
         SimpleDateFormat format = new SimpleDateFormat("HH:mm", locale);
 
         try {
-            String out = format.format(date);
-            return out;
+            return format.format(date);
         } catch (Exception e) {
             return null;
         }
@@ -309,9 +295,7 @@ public class DateTimeUtils {
 
         Integer mins = lCal.get(Calendar.MINUTE);
 
-        Integer minutes = 60 * hours + mins;
-
-        return minutes;
+        return 60 * hours + mins;
     }
 
     @SuppressLint("SimpleDateFormat")

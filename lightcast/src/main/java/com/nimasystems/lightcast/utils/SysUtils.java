@@ -21,6 +21,10 @@ public class SysUtils {
     // cache the deviceId
     private static String mDeviceId;
 
+    public static synchronized String getDeviceId(Context context) {
+        return getDeviceId(context, true);
+    }
+
     /**
      * Get Device Id
      *
@@ -28,20 +32,25 @@ public class SysUtils {
      * @return device id. If there is not available (tablets and etc.) it
      * returns custom device id.
      */
-    public static synchronized String getDeviceId(Context context) {
+    public static synchronized String getDeviceId(Context context, boolean useTelephone) {
 
         if (!StringUtils.isNullOrEmpty(mDeviceId)) {
             return mDeviceId;
         }
 
         String deviceId = null;
+        
         try {
-            TelephonyManager tm = (TelephonyManager) context
-                    .getSystemService(Context.TELEPHONY_SERVICE);
-            if (tm != null) {
-                deviceId = tm.getDeviceId();
-                if (deviceId == null || deviceId.equals("")) {
-                    deviceId = getCustomDeviceID();
+            if (useTelephone) {
+                TelephonyManager tm = (TelephonyManager) context
+                        .getSystemService(Context.TELEPHONY_SERVICE);
+                if (tm != null) {
+                    deviceId = tm.getDeviceId();
+                    if (deviceId == null || deviceId.equals("")) {
+                        deviceId = getCustomDeviceID();
+                    } else {
+                        deviceId = getCustomDeviceID();
+                    }
                 } else {
                     deviceId = getCustomDeviceID();
                 }
@@ -53,6 +62,12 @@ public class SysUtils {
 
         } catch (Exception e) {
             e.printStackTrace();
+
+            try {
+                deviceId = getCustomDeviceID();
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            }
         }
 
         return deviceId;
@@ -91,14 +106,13 @@ public class SysUtils {
 
         cpuAbi = (cpuAbi == null ? "" : cpuAbi);
 
-        String deviceId = "35" + Build.BOARD.length() % 10
+        return "35" + Build.BOARD.length() % 10
                 + Build.BRAND.length() % 10 + cpuAbi.length() % 10
                 + Build.DEVICE.length() % 10 + Build.DISPLAY.length() % 10
                 + Build.HOST.length() % 10 + Build.ID.length() % 10
                 + Build.MANUFACTURER.length() % 10 + Build.MODEL.length() % 10
                 + Build.PRODUCT.length() % 10 + Build.TAGS.length() % 10
                 + Build.TYPE.length() % 10 + Build.USER.length() % 10;
-        return deviceId;
     }
 
     public static void checkThrowOnMainThread() throws SystemException {

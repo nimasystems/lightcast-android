@@ -57,9 +57,8 @@ public class GraphicsUtils {
 
         paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
 
-        Bitmap sourceBitmap = scaleBitmapImage;
-        canvas.drawBitmap(sourceBitmap, new Rect(0, 0, sourceBitmap.getWidth(),
-                sourceBitmap.getHeight()), new Rect(0, 0, targetWidth,
+        canvas.drawBitmap(scaleBitmapImage, new Rect(0, 0, scaleBitmapImage.getWidth(),
+                scaleBitmapImage.getHeight()), new Rect(0, 0, targetWidth,
                 targetHeight), paint);
         return targetBitmap;
     }

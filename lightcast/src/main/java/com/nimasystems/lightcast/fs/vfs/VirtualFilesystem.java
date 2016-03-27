@@ -109,15 +109,13 @@ public class VirtualFilesystem {
         Random rn = new Random();
         String r1 = Integer.toString(rn.nextInt());
         String r2 = Integer.toString(rn.nextInt());
-        String out = MD5.md5Hash(r1 + r2);
-        return out;
+        return MD5.md5Hash(r1 + r2);
     }
 
     private String getFullFilename(String dirHash, String fileHash,
                                    String fileExt) {
-        String f = mBasePath + File.pathSeparator + dirHash
+        return mBasePath + File.pathSeparator + dirHash
                 + File.pathSeparator + fileHash + File.pathSeparator + fileExt;
-        return f;
     }
 
     public VirtualFile writeFile(String physicalFilename,

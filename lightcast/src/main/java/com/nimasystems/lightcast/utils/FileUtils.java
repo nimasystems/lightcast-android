@@ -44,9 +44,8 @@ public class FileUtils {
     public static String getMimetype(String filepath) {
         String extension = filepath.substring(filepath.lastIndexOf("."));
         String mimeTypeMap = MimeTypeMap.getFileExtensionFromUrl(extension);
-        String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(
                 mimeTypeMap);
-        return mimeType;
     }
 
     public static byte[] getBytesFromInputStream(InputStream is) {
