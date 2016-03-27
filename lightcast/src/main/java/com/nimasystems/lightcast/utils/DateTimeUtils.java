@@ -20,6 +20,13 @@ public class DateTimeUtils {
         return dateToString(date, FORMAT_SQL_LONG);
     }
 
+    public static Date addDays(Date date, int days) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.DATE, days);
+        return cal.getTime();
+    }
+
     public static String dateToUTCSqliteString(Date date) {
         if (date == null) {
             return null;
@@ -35,7 +42,7 @@ public class DateTimeUtils {
             return null;
         }
     }
-    
+
     public static Date utcStringToDate(String dateStringInUtc) {
         if (dateStringInUtc == null) {
             return null;
