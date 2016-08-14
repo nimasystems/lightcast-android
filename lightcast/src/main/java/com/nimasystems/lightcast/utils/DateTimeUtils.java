@@ -14,6 +14,10 @@ import java.util.TimeZone;
 @SuppressLint("Assert")
 public class DateTimeUtils {
 
+    public static final String FORMAT_ISO_DATETIME = "yyyy-MM-dd HH:mm:ss";
+    public static final String FORMAT_ISO_DATE = "yyyy-MM-dd";
+    public static final String FORMAT_ISO_TIME = "HH:mm:ss";
+
     public static final String FORMAT_SQL_LONG = "yyyy-MM-dd kk:mm:ss";
 
     public static String dateToSQLStringFormat(Date date) {

@@ -21,15 +21,19 @@ public class ScreenUtils {
         if (mScrDimensions != null) {
             return mScrDimensions;
         }
+
         WindowManager wm = activity.getWindowManager();
         Point dims = new Point();
+
         if (android.os.Build.VERSION.SDK_INT >= 13) {
             wm.getDefaultDisplay().getSize(dims);
         } else if (android.os.Build.VERSION.SDK_INT < 13) {
             dims.x = wm.getDefaultDisplay().getWidth();
             dims.y = wm.getDefaultDisplay().getHeight();
         }
+
         mScrDimensions = dims;
+
         return dims;
     }
 
@@ -37,6 +41,7 @@ public class ScreenUtils {
         if (context == null) {
             return -1;
         }
+
         return dp * context.getResources().getDisplayMetrics().density;
     }
 
@@ -44,6 +49,7 @@ public class ScreenUtils {
         if (context == null) {
             return -1;
         }
+
         return px / context.getResources().getDisplayMetrics().density;
     }
 }

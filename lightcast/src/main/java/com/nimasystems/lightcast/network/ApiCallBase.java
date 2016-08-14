@@ -6,14 +6,12 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpRequest;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestHandle;
 import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.ResponseHandlerInterface;
 import com.loopj.android.http.SyncHttpClient;
 import com.nimasystems.lightcast.encryption.AESCrypt;
-import com.nimasystems.lightcast.exceptions.InvalidParamsException;
 import com.nimasystems.lightcast.utils.DebugUtils;
 import com.nimasystems.lightcast.utils.StringUtils;
 
@@ -32,11 +30,8 @@ import java.util.TimeZone;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.client.methods.HttpUriRequest;
 import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
 import cz.msebera.android.httpclient.message.BasicHeader;
-import cz.msebera.android.httpclient.protocol.HttpContext;
 
 abstract public class ApiCallBase {
 
@@ -92,19 +87,20 @@ abstract public class ApiCallBase {
     private boolean mIsBusy;
     private TimeZone mServerTimezone;
 
-    public ApiCallBase(Context context) throws InvalidParamsException {
+    public ApiCallBase(Context context) {
         mContext = context;
-
-        if (mContext == null) {
-            throw new InvalidParamsException("Invalid context");
-        }
+        mRequestHeaders = new ArrayList<>();
     }
 
     public ApiCallBase(Context context, ApiCallTaskDelegate delegate) {
         mContext = context;
         mDelegate = delegate;
-
         mRequestHeaders = new ArrayList<>();
+    }
+
+    public ApiCallBase setDelegate(ApiCallTaskDelegate delegate) {
+        mDelegate = delegate;
+        return this;
     }
 
     public static String encrDid(String deviceGuid, String deviceFriendlyName) {
@@ -149,6 +145,7 @@ abstract public class ApiCallBase {
                         err.code = code;
                         err.domainName = domain;
                         err.message = message;
+                        err.extraData = objError.optJSONObject("data");
 
                         // validation errors
                         JSONObject vJErrs = objError
@@ -191,8 +188,9 @@ abstract public class ApiCallBase {
         return mConnectionId;
     }
 
-    public void setSynchronizedCallback(boolean syncCallback) {
+    public ApiCallBase setSynchronizedCallback(boolean syncCallback) {
         mSynchronizedCallback = syncCallback;
+        return this;
     }
 
     protected ResponseHandlerInterface getResponseHandler() {
@@ -243,56 +241,63 @@ abstract public class ApiCallBase {
         return mClientAPILevel;
     }
 
-    public void setClientAPILevel(int apiLevel) {
+    public ApiCallBase setClientAPILevel(int apiLevel) {
         mClientAPILevel = apiLevel;
+        return this;
     }
 
     public String getHttpAuthUsername() {
         return mHttpAuthUsername;
     }
 
-    public void setHttpAuthUsername(String username) {
+    public ApiCallBase setHttpAuthUsername(String username) {
         mHttpAuthUsername = username;
+        return this;
     }
 
     public String getHttpAuthPassword() {
         return mHttpAuthPassword;
     }
 
-    public void setHttpAuthPassword(String password) {
+    public ApiCallBase setHttpAuthPassword(String password) {
         mHttpAuthPassword = password;
+        return this;
     }
 
     public boolean getHttpAuthEnabled() {
         return mHttpAuthEnabled;
     }
 
-    public void setHttpAuthEnabled(boolean enabled) {
+    public ApiCallBase setHttpAuthEnabled(boolean enabled) {
         mHttpAuthEnabled = enabled;
+        return this;
     }
 
     public boolean getSSLTrustAll() {
         return mSSLTrustAll;
     }
 
-    public void setSSLTrustAll(boolean trustAll) {
+    public ApiCallBase setSSLTrustAll(boolean trustAll) {
         mSSLTrustAll = trustAll;
+        return this;
     }
 
     public String getRequestUserAgent() {
         return mRequestUserAgent;
     }
 
-    public void setRequestUserAgent(String ua) {
+    public ApiCallBase setRequestUserAgent(String ua) {
         mRequestUserAgent = ua;
+        return this;
     }
 
     public boolean getDebug() {
         return mDebug;
     }
 
-    public void setDebug(boolean debug) {
+    public ApiCallBase setDebug(boolean debug) {
         mDebug = debug;
+        return this;
     }
 
     protected void log(String str) {
@@ -327,12 +332,14 @@ abstract public class ApiCallBase {
         return true;
     }
 
-    public void setConnectTimeout(int timeout) {
+    public ApiCallBase setConnectTimeout(int timeout) {
         mConnectTimeout = timeout;
+        return this;
     }
 
-    public void setReadTimeout(int timeout) {
+    public ApiCallBase setReadTimeout(int timeout) {
         mReadTimeout = timeout;
+        return this;
     }
 
     public TimeZone getServerTimezone() {
@@ -363,36 +370,44 @@ abstract public class ApiCallBase {
         return mIsBusy;
     }
 
-    public void setUseSSL(boolean useSSL) {
+    public ApiCallBase setUseSSL(boolean useSSL) {
         mUseSSL = useSSL;
+        return this;
     }
 
-    public void setAccessToken(String accessToken) {
+    public ApiCallBase setAccessToken(String accessToken) {
         mAccessToken = accessToken;
+        return this;
     }
 
-    public void setServerHostname(String hostname) {
+    public ApiCallBase setServerHostname(String hostname) {
         mServerHostname = hostname;
+        return this;
     }
 
-    public void setServerAddress(String address) {
+    public ApiCallBase setServerAddress(String address) {
         mServerAddress = address;
+        return this;
     }
 
-    public void setQueryPathPrefix(String prefix) {
+    public ApiCallBase setQueryPathPrefix(String prefix) {
         mQueryPathPrefix = prefix;
+        return this;
     }
 
-    public void setDeviceFriendlyName(String friendlyName) {
+    public ApiCallBase setDeviceFriendlyName(String friendlyName) {
         mDeviceFriendlyName = friendlyName;
+        return this;
     }
 
-    public void setDeviceGuid(String deviceGuid) {
+    public ApiCallBase setDeviceGuid(String deviceGuid) {
         mDeviceGuid = deviceGuid;
+        return this;
     }
 
-    public void setLocale(String locale) {
+    public ApiCallBase setLocale(String locale) {
         mLocale = locale;
+        return this;
     }
 
     public boolean isSuccessful() {
@@ -705,8 +720,30 @@ abstract public class ApiCallBase {
                 + requestQuery : "");
     }
 
+    protected void beforeExecute() {
+        //
+    }
+
+    protected String filterServerHostname(String serverHostname) {
+        return serverHostname;
+    }
+
+    protected String filterServerAddress(String serverAddress) {
+        return serverAddress;
+    }
+
+    protected boolean filterUseSSL(boolean useSSL) {
+        return useSSL;
+    }
+
     protected boolean executeInternal(boolean synchronous,
                                       String serverHostname, String serverAddress, boolean useSSL) throws UnsupportedEncodingException {
+
+        beforeExecute();
+
+        serverHostname = filterServerHostname(serverHostname);
+        serverAddress = filterServerAddress(serverAddress);
+        useSSL = filterUseSSL(useSSL);
 
         if (StringUtils.isNullOrEmpty(serverHostname)) {
             if (mDebug) {
@@ -778,7 +815,7 @@ abstract public class ApiCallBase {
 
         if (synchronous) {
             //noinspection EmptyMethod,deprecation
-            mAsyncHttpClient = new SyncHttpClient(trustSSL, 80, 443) {
+            mAsyncHttpClient = new SyncHttpClient(trustSSL, 80, 443);/* {
 
                 @Override
                 protected AsyncHttpRequest newAsyncHttpRequest(
@@ -789,10 +826,10 @@ abstract public class ApiCallBase {
                     return super.newAsyncHttpRequest(client, httpContext,
                             uriRequest, contentType, responseHandler, context);
                 }
-            };
+            };*/
         } else {
             //noinspection EmptyMethod,deprecation
-            mAsyncHttpClient = new AsyncHttpClient(trustSSL, 80, 443) {
+            mAsyncHttpClient = new AsyncHttpClient(trustSSL, 80, 443);/* {
 
                 @Override
                 protected AsyncHttpRequest newAsyncHttpRequest(
@@ -803,7 +840,7 @@ abstract public class ApiCallBase {
                     return super.newAsyncHttpRequest(client, httpContext,
                             uriRequest, contentType, responseHandler, context);
                 }
-            };
+            };*/
         }
 
         // http auth

@@ -25,6 +25,19 @@ public class SysUtils {
         return getDeviceId(context, true);
     }
 
+    // returns true if current Android OS on device is >= verCode
+    public static boolean androidSupportsSDK(int verCode) {
+        if (android.os.Build.VERSION.RELEASE.startsWith("1.0"))
+            return verCode == 1;
+        else if (android.os.Build.VERSION.RELEASE.startsWith("1.1")) {
+            return verCode <= 2;
+        } else if (android.os.Build.VERSION.RELEASE.startsWith("1.5")) {
+            return verCode <= 3;
+        } else {
+            return android.os.Build.VERSION.SDK_INT >= verCode;
+        }
+    }
+
     /**
      * Get Device Id
      *
@@ -39,7 +52,7 @@ public class SysUtils {
         }
 
         String deviceId = null;
-        
+
         try {
             if (useTelephone) {
                 TelephonyManager tm = (TelephonyManager) context
