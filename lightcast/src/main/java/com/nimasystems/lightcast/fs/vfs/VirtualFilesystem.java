@@ -142,7 +142,11 @@ public class VirtualFilesystem {
                 throw new IOException("Could not read data");
             }
         } finally {
-            inp.close();
+            try {
+                inp.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         return this.writeFile(fileData, actualFilename, fileExtension);

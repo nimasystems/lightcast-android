@@ -132,10 +132,18 @@ public class FileUtils {
                     }
                 }
             } finally {
-                channel.close();
+                try {
+                    channel.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } finally {
-            fileInputStream.close();
+            try {
+                fileInputStream.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         return ret;

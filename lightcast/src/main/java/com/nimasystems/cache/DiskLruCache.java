@@ -246,7 +246,11 @@ public final class DiskLruCache implements Closeable {
             }
             return writer.toString();
         } finally {
-            reader.close();
+            try {
+                reader.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -757,7 +761,7 @@ public final class DiskLruCache implements Closeable {
         @Override
         public void close() {
             for (InputStream in : ins) {
-				/* IoUtils. */
+                /* IoUtils. */
                 closeQuietly(in);
             }
         }

@@ -1,5 +1,6 @@
 package com.nimasystems.lightcast.utils;
 
+import android.annotation.SuppressLint;
 import android.util.Base64;
 
 import javax.crypto.Cipher;
@@ -46,7 +47,7 @@ public class SimpleCrypto2 {
                     .getInstance(algorithm);
             SecretKey secretKey = secretKeyFactory.generateSecret(desKeySpec);
             byte[] dataBytes = data.getBytes(charsetName);
-            Cipher cipher = Cipher.getInstance(algorithm);
+            @SuppressLint("GetInstance") Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
             return Base64.encodeToString(cipher.doFinal(dataBytes), base64Mode);
         } catch (Exception e) {
@@ -63,7 +64,7 @@ public class SimpleCrypto2 {
             SecretKeyFactory secretKeyFactory = SecretKeyFactory
                     .getInstance(algorithm);
             SecretKey secretKey = secretKeyFactory.generateSecret(desKeySpec);
-            Cipher cipher = Cipher.getInstance(algorithm);
+            @SuppressLint("GetInstance") Cipher cipher = Cipher.getInstance(algorithm);
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
             byte[] dataBytesDecrypted = (cipher.doFinal(dataBytes));
             return new String(dataBytesDecrypted);

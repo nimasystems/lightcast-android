@@ -45,6 +45,7 @@ public class SysUtils {
      * @return device id. If there is not available (tablets and etc.) it
      * returns custom device id.
      */
+    @SuppressLint("HardwareIds")
     public static synchronized String getDeviceId(Context context, boolean useTelephone) {
 
         if (!StringUtils.isNullOrEmpty(mDeviceId)) {

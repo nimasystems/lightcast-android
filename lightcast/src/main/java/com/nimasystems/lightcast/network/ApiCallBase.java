@@ -49,7 +49,6 @@ abstract public class ApiCallBase {
     public static final int DEFAULT_READ_TIMEOUT = 20000;
     protected int mReadTimeout = DEFAULT_READ_TIMEOUT;
     public static final int DEFAULT_MAX_RETRIES_TIMEOUT = 20000;
-    private static String mEd;
     protected final Logger mLogger = LoggerFactory.getLogger(this.getClass());
     protected AsyncHttpClient mAsyncHttpClient;
     protected RequestHandle mRequestHandle;
@@ -68,6 +67,7 @@ abstract public class ApiCallBase {
     protected String mAccessToken;
     protected String mDeviceFriendlyName;
     protected String mDeviceGuid;
+    protected String mOldDeviceGuid;
     protected String mLocale;
     protected boolean mSynchronizedCallback;
     protected ApiServerErrorModel mServerError;
@@ -103,14 +103,16 @@ abstract public class ApiCallBase {
         return this;
     }
 
-    public static String encrDid(String deviceGuid, String deviceFriendlyName) {
+    public static String encrDid(String deviceGuid, String deviceFriendlyName, String oldDeviceGuid) {
+
         if (StringUtils.isNullOrEmpty(deviceGuid)) {
             return null;
         }
 
         String friendlyName = !StringUtils.isNullOrEmpty(deviceFriendlyName) ? deviceFriendlyName
-                : "Emulator";
-        String joined = deviceGuid + "|" + friendlyName + "|" + "android";
+                : "-unknown-";
+        String joined = deviceGuid + "|" + friendlyName + "|" + "android" +
+                (!StringUtils.isNullOrEmpty(oldDeviceGuid) ? "|" + oldDeviceGuid : "");
 
         String tkr;
 
@@ -405,6 +407,11 @@ abstract public class ApiCallBase {
         return this;
     }
 
+    public ApiCallBase setOldDeviceGuid(String deviceGuid) {
+        mOldDeviceGuid = deviceGuid;
+        return this;
+    }
+
     public ApiCallBase setLocale(String locale) {
         mLocale = locale;
         return this;
@@ -438,22 +445,16 @@ abstract public class ApiCallBase {
         return mRequestHandle;
     }
 
+    private static String mDId;
+
     protected synchronized String getDeviceIdEncrypted() {
-        String dId;
-
         // encrypt / hash the device id
-        dId = mEd;
-
-        if (dId == null && !StringUtils.isNullOrEmpty(mDeviceGuid)) {
-
-            mEd = encrDid(mDeviceGuid, mDeviceFriendlyName);
-
-            logDebug("Created X-Device: " + mEd);
-
-            dId = mEd;
+        if (mDId == null) {
+            mDId = encrDid(mDeviceGuid, mDeviceFriendlyName, mOldDeviceGuid);
+            logDebug("Created X-Device: " + mDId);
         }
 
-        return escapeHeaderValue(dId);
+        return escapeHeaderValue(mDId);
     }
 
     protected void disableConnectionReuseIfNecessary() {
@@ -814,33 +815,9 @@ abstract public class ApiCallBase {
         boolean trustSSL = (!mUseSSL || mSSLTrustAll);
 
         if (synchronous) {
-            //noinspection EmptyMethod,deprecation
-            mAsyncHttpClient = new SyncHttpClient(trustSSL, 80, 443);/* {
-
-                @Override
-                protected AsyncHttpRequest newAsyncHttpRequest(
-                        DefaultHttpClient client, HttpContext httpContext,
-                        HttpUriRequest uriRequest, String contentType,
-                        ResponseHandlerInterface responseHandler,
-                        Context context) {
-                    return super.newAsyncHttpRequest(client, httpContext,
-                            uriRequest, contentType, responseHandler, context);
-                }
-            };*/
+            mAsyncHttpClient = new SyncHttpClient(trustSSL, 80, 443);
         } else {
-            //noinspection EmptyMethod,deprecation
-            mAsyncHttpClient = new AsyncHttpClient(trustSSL, 80, 443);/* {
-
-                @Override
-                protected AsyncHttpRequest newAsyncHttpRequest(
-                        DefaultHttpClient client, HttpContext httpContext,
-                        HttpUriRequest uriRequest, String contentType,
-                        ResponseHandlerInterface responseHandler,
-                        Context context) {
-                    return super.newAsyncHttpRequest(client, httpContext,
-                            uriRequest, contentType, responseHandler, context);
-                }
-            };*/
+            mAsyncHttpClient = new AsyncHttpClient(trustSSL, 80, 443);
         }
 
         // http auth
@@ -856,8 +833,6 @@ abstract public class ApiCallBase {
 
         mAsyncHttpClient.setMaxRetriesAndTimeout(getRequestMaxRetries(),
                 getRequestMaxRetriesTimeout());
-
-        // mAsyncHttpClient.setProxy("127.0.0.1", 8888);
 
         if (isPostRequest && httpE == null
                 && !StringUtils.isNullOrEmpty(requestQueryPost)) {

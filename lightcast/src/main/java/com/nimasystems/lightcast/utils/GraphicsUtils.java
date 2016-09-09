@@ -292,7 +292,11 @@ public class GraphicsUtils {
 
                 bitmap = getScaledBitmap(imgBuffer, maxWidth, maxHeight);
             } finally {
-                inp.close();
+                try {
+                    inp.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
         } catch (Exception e) {
@@ -319,7 +323,11 @@ public class GraphicsUtils {
 
                 bitmap = getScaledBitmap(imgBuffer, maxWidth, maxHeight);
             } finally {
-                inp.close();
+                try {
+                    inp.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -361,7 +369,11 @@ public class GraphicsUtils {
 
                 bitmap = getScaledBitmap(imgBuffer, maxWidth, maxHeight);
             } finally {
-                inp.close();
+                try {
+                    inp.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } catch (FileNotFoundException e) {
             return null;

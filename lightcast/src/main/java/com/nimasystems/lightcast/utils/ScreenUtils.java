@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
+import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
 public class ScreenUtils {
@@ -42,7 +43,8 @@ public class ScreenUtils {
             return -1;
         }
 
-        return dp * context.getResources().getDisplayMetrics().density;
+        float px = dp * ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+        return px;
     }
 
     public static float pxToDp(Context context, float px) {
@@ -50,6 +52,7 @@ public class ScreenUtils {
             return -1;
         }
 
-        return px / context.getResources().getDisplayMetrics().density;
+        float dp = px / ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
+        return dp;
     }
 }
