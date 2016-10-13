@@ -789,12 +789,12 @@ abstract public class ApiCallBase {
         @SuppressWarnings("deprecation") String requestQueryGet = (!isPostRequest ? getRequestQuery() : null);
         @SuppressWarnings("deprecation") String requestQueryPost = (isPostRequest ? getRequestQuery() : null);
 
-        if (StringUtils.isNullOrEmpty(queryPath)) {
+        /*if (StringUtils.isNullOrEmpty(queryPath)) {
             if (mDebug) {
                 DebugUtils.ass(false, "invalid query path");
             }
             return false;
-        }
+        }*/
 
         // prepare the url
         mConnectionUrl = getConnectionUrl(useSSL, serverAddress,

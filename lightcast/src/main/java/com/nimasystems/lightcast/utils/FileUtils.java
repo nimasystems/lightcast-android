@@ -104,6 +104,21 @@ public class FileUtils {
         }
     }
 
+    // http://stackoverflow.com/questions/8323760/java-get-uri-from-filepath
+    public static String convertToFileURL(String filename) {
+        // On JDK 1.2 and later, simplify this to:
+        // "path = file.toURL().toString()".
+        String path = new File(filename).getAbsolutePath();
+        if (File.separatorChar != '/') {
+            path = path.replace(File.separatorChar, '/');
+        }
+        if (!path.startsWith("/")) {
+            path = "/" + path;
+        }
+
+        return "file:" + path;
+    }
+
     public static String returnMemoryMappedFileContents(File file, int lines)
             throws IOException {
         FileInputStream fileInputStream = new FileInputStream(file);

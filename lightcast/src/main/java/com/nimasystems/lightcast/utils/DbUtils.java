@@ -21,7 +21,7 @@ public class DbUtils {
         if (date == null) {
             return null;
         }
-        CharSequence c = DateFormat.format("yyyy-MM-dd kk:mm:ss",
+        CharSequence c = DateFormat.format(DateTimeUtils.FORMAT_SQL_LONG,
                 date.getTime());
         String ret = c.toString();
         //noinspection ConstantConditions
@@ -34,7 +34,7 @@ public class DbUtils {
             return null;
         }
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss", Locale.US);
+        SimpleDateFormat format = new SimpleDateFormat(DateTimeUtils.FORMAT_SQL_LONG, Locale.US);
 
         try {
             return format.parse(strDate);

@@ -89,7 +89,7 @@ public class StringUtils {
         return ret;
     }
 
-    public static ArrayList<Long> explode(String separator, String str) {
+    public static ArrayList<Long> explodeLong(String separator, String str) {
         if (str == null) {
             return null;
         }
@@ -103,6 +103,14 @@ public class StringUtils {
         }
 
         return ret;
+    }
+
+    public static boolean safeEqualsIgnoreCase(String string1, String string2) {
+        return ((string1 == null ? string2 == null : string1.equalsIgnoreCase(string2)));
+    }
+
+    public static boolean safeEquals(String string1, String string2) {
+        return ((string1 == null ? string2 == null : string1.equals(string2)));
     }
 
     public static String cyrToLatTransliterate(String cyrStr, boolean doInverse) {

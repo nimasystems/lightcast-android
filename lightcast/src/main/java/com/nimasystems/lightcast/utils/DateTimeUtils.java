@@ -62,6 +62,22 @@ public class DateTimeUtils {
         }
     }
 
+    public static Date utcDateStringToDate(String dateStringInUtc) {
+        if (dateStringInUtc == null) {
+            return null;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd",
+                Locale.ENGLISH);
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        format.setTimeZone(tz);
+
+        try {
+            return format.parse(dateStringInUtc);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
     public static String dateTimeToLocaleStringFormat(Context context, Date date) {
         if (date == null || context == null) {
             return null;
@@ -101,7 +117,6 @@ public class DateTimeUtils {
 
     public static String dateToString(Date date, String format) {
         if (date == null || StringUtils.isNullOrEmpty(format)) {
-            assert false : "invalid params";
             return null;
         }
         return DateFormat.format(format, date).toString();
@@ -114,7 +129,6 @@ public class DateTimeUtils {
 
     public static long getUnixTimestamp(Date date, boolean toCurrentTimezone) {
         if (date == null) {
-            assert false : "invalid params";
             return 0;
         }
 
