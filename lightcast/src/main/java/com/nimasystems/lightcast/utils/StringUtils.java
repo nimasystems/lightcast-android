@@ -43,6 +43,10 @@ public class StringUtils {
         return output;
     }
 
+    public static String stringify(String string) {
+        return (string == null ? "" : string);
+    }
+
     /*
      * public static String stringJoin(List<?> list, String delim) {
      *
