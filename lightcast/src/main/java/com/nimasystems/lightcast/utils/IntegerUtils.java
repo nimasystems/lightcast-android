@@ -27,6 +27,18 @@ public class IntegerUtils {
         return ret;
     }
 
+    public static float getSafeFloat(String str) {
+        float ret = 0;
+
+        try {
+            ret = Float.parseFloat(str);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ret;
+    }
+
     public static int getRandomNumber(int min, int max) {
         Random r = new Random();
         return r.nextInt(max - min) + min;

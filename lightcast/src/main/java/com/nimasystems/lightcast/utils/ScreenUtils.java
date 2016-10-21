@@ -1,7 +1,6 @@
 package com.nimasystems.lightcast.utils;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
 import android.util.DisplayMetrics;
@@ -18,12 +17,12 @@ public class ScreenUtils {
 
     @SuppressWarnings("deprecation")
     @SuppressLint("NewApi")
-    public static Point getDisplaySize(Activity activity) {
+    public static Point getDisplaySize(Context context) {
         if (mScrDimensions != null) {
             return mScrDimensions;
         }
 
-        WindowManager wm = activity.getWindowManager();
+        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Point dims = new Point();
 
         if (android.os.Build.VERSION.SDK_INT >= 13) {
@@ -43,8 +42,7 @@ public class ScreenUtils {
             return -1;
         }
 
-        float px = dp * ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
-        return px;
+        return dp * ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
     }
 
     public static float pxToDp(Context context, float px) {
@@ -52,7 +50,6 @@ public class ScreenUtils {
             return -1;
         }
 
-        float dp = px / ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
-        return dp;
+        return px / ((float) context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
     }
 }

@@ -43,25 +43,38 @@ public class StringUtils {
         return output;
     }
 
+    public static String convertToHex(byte[] data) {
+        StringBuilder buf = new StringBuilder();
+        for (byte b : data) {
+            int halfbyte = (b >>> 4) & 0x0F;
+            int two_halfs = 0;
+            do {
+                buf.append((0 <= halfbyte) && (halfbyte <= 9) ? (char) ('0' + halfbyte) : (char) ('a' + (halfbyte - 10)));
+                halfbyte = b & 0x0F;
+            } while (two_halfs++ < 1);
+        }
+        return buf.toString();
+    }
+
     public static String stringify(String string) {
         return (string == null ? "" : string);
     }
 
-    /*
-     * public static String stringJoin(List<?> list, String delim) {
-     *
-     * StringBuilder sb = new StringBuilder();
-     *
-     * String loopDelim = "";
-     *
-     * for (String s : list) {
-     *
-     * sb.append(loopDelim); sb.append(s);
-     *
-     * loopDelim = delim; }
-     *
-     * return sb.toString(); }
-     */
+    public static String join(List<?> list, String delimiter) {
+        if (list == null) {
+            return null;
+        }
+
+        StringBuilder result = new StringBuilder();
+        for (Iterator<?> i = list.iterator(); i.hasNext(); ) {
+            result.append(i.next());
+            if (i.hasNext()) {
+                result.append(delimiter);
+            }
+        }
+        return result.toString();
+    }
+
     public static String join(List<?> list, char delimiter) {
         if (list == null) {
             return null;
