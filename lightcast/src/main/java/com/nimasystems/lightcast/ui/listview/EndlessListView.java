@@ -17,6 +17,8 @@ public class EndlessListView extends ListView implements OnScrollListener {
     private EndlessListener listener;
     private EndlessAdapter adapter;
 
+    private boolean mScrollEnabled = true;
+
     public EndlessListView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         this.setOnScrollListener(this);
@@ -32,31 +34,37 @@ public class EndlessListView extends ListView implements OnScrollListener {
         this.setOnScrollListener(this);
     }
 
+    public void setScrollListenerEnabled(boolean enabled) {
+        mScrollEnabled = enabled;
+    }
+
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem,
                          int visibleItemCount, int totalItemCount) {
 
-        int l = visibleItemCount + firstVisibleItem;
-        if (totalItemCount > 0 && l >= totalItemCount && !isLoading) {
+        if (mScrollEnabled) {
+            int l = visibleItemCount + firstVisibleItem;
+            if (totalItemCount > 0 && l >= totalItemCount && !isLoading) {
 
-            if (getAdapter() == null)
-                return;
+                if (getAdapter() == null)
+                    return;
 
-            if (getAdapter().getCount() == 0)
-                return;
+                if (getAdapter().getCount() == 0)
+                    return;
 
-            if (listener == null || !listener.canLoadMore()) {
-                return;
+                if (listener == null || !listener.canLoadMore()) {
+                    return;
+                }
+
+                // It is time to add new data. We call the listener
+
+                if (footer != null) {
+                    footer.setVisibility(View.VISIBLE);
+                }
+
+                isLoading = true;
+                listener.loadData();
             }
-
-            // It is time to add new data. We call the listener
-
-            if (footer != null) {
-                footer.setVisibility(View.VISIBLE);
-            }
-
-            isLoading = true;
-            listener.loadData();
         }
     }
 
@@ -82,8 +90,10 @@ public class EndlessListView extends ListView implements OnScrollListener {
         if (adapter == null) {
             return;
         }
+        mScrollEnabled = false;
         adapter.addItems(data);
         cancelLoading();
+        mScrollEnabled = true;
     }
 
     public void cancelLoading() {
