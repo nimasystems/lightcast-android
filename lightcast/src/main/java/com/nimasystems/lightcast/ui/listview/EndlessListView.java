@@ -3,6 +3,7 @@ package com.nimasystems.lightcast.ui.listview;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
@@ -17,6 +18,9 @@ public class EndlessListView extends ListView implements OnScrollListener {
     private EndlessListener listener;
     private EndlessAdapter adapter;
 
+    private boolean mFullHeight;
+
+    private boolean mScrollListenerEnabled = true;
     private boolean mScrollEnabled = true;
 
     public EndlessListView(Context context, AttributeSet attrs, int defStyle) {
@@ -34,15 +38,39 @@ public class EndlessListView extends ListView implements OnScrollListener {
         this.setOnScrollListener(this);
     }
 
-    public void setScrollListenerEnabled(boolean enabled) {
+    public void setScrollEnabled(boolean enabled) {
         mScrollEnabled = enabled;
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        return !mScrollEnabled ? (ev.getAction() == MotionEvent.ACTION_MOVE || super.dispatchTouchEvent(ev)) : super.dispatchTouchEvent(ev);
+    }
+
+    public void setFullHeightEnabled(boolean enabled) {
+        mFullHeight = enabled;
+    }
+
+    @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (mFullHeight) {
+            int expandSpec = MeasureSpec.makeMeasureSpec(Integer.MAX_VALUE >> 2,
+                    MeasureSpec.AT_MOST);
+            super.onMeasure(widthMeasureSpec, expandSpec);
+        } else {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        }
+    }
+
+    public void setScrollListenerEnabled(boolean enabled) {
+        mScrollListenerEnabled = enabled;
     }
 
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem,
                          int visibleItemCount, int totalItemCount) {
 
-        if (mScrollEnabled) {
+        if (mScrollListenerEnabled) {
             int l = visibleItemCount + firstVisibleItem;
             if (totalItemCount > 0 && l >= totalItemCount && !isLoading) {
 
@@ -90,10 +118,10 @@ public class EndlessListView extends ListView implements OnScrollListener {
         if (adapter == null) {
             return;
         }
-        mScrollEnabled = false;
+        mScrollListenerEnabled = false;
         adapter.addItems(data);
         cancelLoading();
-        mScrollEnabled = true;
+        mScrollListenerEnabled = true;
     }
 
     public void cancelLoading() {

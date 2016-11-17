@@ -628,11 +628,26 @@ abstract public class ApiCallBase {
         // notify the delegate
         if (mDelegate != null) {
             if (!mSynchronizedCallback && (mIsSynchronous || isOnMainThread())) {
-                if (mIsSuccessful) {
-                    mDelegate.didFinishTask(this);
+                if (isOnMainThread()) {
+                    if (mIsSuccessful) {
+                        mDelegate.didFinishTask(this);
+                    } else {
+                        mDelegate.didFinishTaskWithError(this, mLastErrorCode,
+                                mLastErrorMessage, mServerError);
+                    }
                 } else {
-                    mDelegate.didFinishTaskWithError(this, mLastErrorCode,
-                            mLastErrorMessage, mServerError);
+                    Handler mainHandler = new Handler(mContext.getMainLooper());
+                    Runnable myRunnable = new Runnable() {
+                        public void run() {
+                            if (mIsSuccessful) {
+                                mDelegate.didFinishTask(ApiCallBase.this);
+                            } else {
+                                mDelegate.didFinishTaskWithError(ApiCallBase.this, mLastErrorCode,
+                                        mLastErrorMessage, mServerError);
+                            }
+                        }
+                    };
+                    mainHandler.post(myRunnable);
                 }
             } else {
                 Handler mainHandler = new Handler(mContext.getMainLooper());
