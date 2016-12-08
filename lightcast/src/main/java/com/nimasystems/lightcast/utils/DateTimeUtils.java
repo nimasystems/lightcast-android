@@ -316,6 +316,60 @@ public class DateTimeUtils {
         return 60 * hours + mins;
     }
 
+    public static String dateFromLocalToUTCTimezone(Date inputDate,
+                                                    String format) {
+        if (inputDate != null) {
+            SimpleDateFormat sourceFormat1 = new SimpleDateFormat(format, Locale.ENGLISH);
+
+            if (sourceFormat1 != null) {
+                sourceFormat1.setTimeZone(TimeZone.getTimeZone("UTC"));
+                String dateStr = sourceFormat1.format(inputDate);
+                return dateStr;
+            } else {
+                return "";
+            }
+        } else {
+            return "";
+        }
+    }
+
+    public static String dateFromUTCToLocalTimezone(String dateStr,
+                                                    String format) {
+        if (StringUtils.isNullOrEmpty(dateStr) || StringUtils.isNullOrEmpty(format)) {
+            return null;
+        }
+
+        SimpleDateFormat sourceFormat = new SimpleDateFormat(format, Locale.ENGLISH);
+        sourceFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date dateUTC;
+        String date;
+
+        try {
+            dateUTC = sourceFormat.parse(dateStr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        SimpleDateFormat sourceFormat1 = new SimpleDateFormat(format, Locale.ENGLISH);
+        Calendar cal = Calendar.getInstance();
+        TimeZone tz = cal.getTimeZone();
+        sourceFormat1.setTimeZone(tz);
+        date = sourceFormat1.format(dateUTC);
+
+        return date;
+    }
+
+    public static Date dateFromUTCToLocalTimezoneDate(String dateStr,
+                                                      String format) {
+        return stringToDateTime(dateFromUTCToLocalTimezone(dateStr, format), Locale.ENGLISH);
+    }
+
+    public static Date dateFromLocalToUTCTimezoneDate(Date inputDate,
+                                                      String format) {
+        return stringToDateTime(dateFromLocalToUTCTimezone(inputDate, format), Locale.ENGLISH);
+    }
+
     @SuppressLint("SimpleDateFormat")
     public static String dateFromTimezoneToUTC(String dateStr, String format,
                                                TimeZone serverTimezone) {

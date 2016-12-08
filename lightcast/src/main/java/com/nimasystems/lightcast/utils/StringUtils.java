@@ -57,7 +57,7 @@ public class StringUtils {
     }
 
     public static String stringify(String string) {
-        return (string == null ? "" : string);
+        return (string == null || string.equals("null") ? "" : string);
     }
 
     public static String join(List<?> list, String delimiter) {
