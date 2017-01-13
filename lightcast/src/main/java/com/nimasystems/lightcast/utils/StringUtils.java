@@ -1,8 +1,11 @@
 package com.nimasystems.lightcast.utils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 public class StringUtils {
     private static final String[] cyrLetters = {"а", "б", "в", "г", "д", "е", "ё", "ж", "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я", "А", "Б", "В", "Г", "Д", "Е", "Ж", "З", "И", "Й", "К", "Л", "М", "Н", "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ", "Ы", "Ь", "Э", "Ю", "Я"};
@@ -58,6 +61,37 @@ public class StringUtils {
 
     public static String stringify(String string) {
         return (string == null || string.equals("null") ? "" : string);
+    }
+
+    public static Set<String> separate(String str, String sep) {
+        if (str != null && sep != null) {
+            Set<String> s = new HashSet<>();
+
+            StringTokenizer st = new StringTokenizer(str, sep);
+            while (st.hasMoreTokens()) {
+                s.add(st.nextToken());
+            }
+
+            return s;
+        } else {
+            return null;
+        }
+    }
+
+    public static String join(Set<String> set, String sep) {
+        String result = null;
+        if (set != null) {
+            StringBuilder sb = new StringBuilder();
+            Iterator<String> it = set.iterator();
+            if (it.hasNext()) {
+                sb.append(it.next());
+            }
+            while (it.hasNext()) {
+                sb.append(sep).append(it.next());
+            }
+            result = sb.toString();
+        }
+        return result;
     }
 
     public static String join(List<?> list, String delimiter) {

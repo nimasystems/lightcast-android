@@ -44,6 +44,8 @@ abstract public class ApiCallBase {
 
     public static final String X_CLIENT_API_LEVEL_HEADER_NAME = "X-LC-Client-Api-Level";
 
+    public static final String DEFAULT_ACCEPTED_MIMETYPE = "application/json";
+
     public static final int DEFAULT_CONNECT_TIMEOUT = 20000;
     protected int mConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
     public static final int DEFAULT_READ_TIMEOUT = 20000;
@@ -60,6 +62,7 @@ abstract public class ApiCallBase {
     protected byte[] mResponseBody;
     protected boolean mResponseIsSuccess;
     protected Context mContext;
+    protected String mAcceptedMimetype = DEFAULT_ACCEPTED_MIMETYPE;
     protected int mClientAPILevel;
     protected String mServerHostname;
     protected String mServerAddress;
@@ -524,6 +527,11 @@ abstract public class ApiCallBase {
             //noinspection ConstantConditions
             mRequestHeaders.add(new BasicHeader("Accept-Language", ac != null ? ac
                     .toLowerCase(Locale.US) : null));
+        }
+
+        // let the server know we expect JSON
+        if (!StringUtils.isNullOrEmpty(mAcceptedMimetype)) {
+            mRequestHeaders.add(new BasicHeader("Accept", mAcceptedMimetype));
         }
     }
 

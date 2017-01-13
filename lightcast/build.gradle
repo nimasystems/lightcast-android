@@ -29,6 +29,6 @@ allprojects {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.loopj.android:android-async-http:1.4.9'
-    compile 'com.android.support:support-annotations:25.0.1'
-    compile 'com.android.support:support-v4:25.0.1'
+    compile 'com.android.support:support-annotations:25.1.0'
+    compile 'com.android.support:support-v4:25.1.0'
 }
