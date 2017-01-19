@@ -12,7 +12,7 @@ public class StringUtils {
     private static final String[] latLetters = {"a", "b", "v", "g", "d", "e", "io", "zh", "z", "i", "y", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "h", "ts", "ch", "sh", "sht", "a", "i", "y", "e", "yu", "ya", "A", "B", "V", "G", "D", "E", "Zh", "Z", "I", "Y", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "F", "H", "Ts", "Ch", "Sh", "Sht", "A", "I", "Y", "E", "Yu", "Ya"};
 
     public static boolean isNullOrEmpty(String str) {
-        return (str == null || str.length() < 1);
+        return (str == null || str.length() < 1 || str.equalsIgnoreCase("null"));
     }
 
     public static String getRandomString() {
