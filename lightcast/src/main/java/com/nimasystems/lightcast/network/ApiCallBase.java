@@ -15,6 +15,8 @@ import com.nimasystems.lightcast.encryption.AESCrypt;
 import com.nimasystems.lightcast.utils.DebugUtils;
 import com.nimasystems.lightcast.utils.StringUtils;
 
+import org.cryptonode.jncryptor.AES256JNCryptor;
+import org.cryptonode.jncryptor.JNCryptor;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -78,7 +80,9 @@ abstract public class ApiCallBase {
     protected boolean mIsCancelled;
     protected boolean mIsSuccessful;
     protected int mLastErrorCode;
+    protected boolean mEncrUseSecondMethod;
     protected String mLastErrorMessage;
+    protected String mEncrKey;
     protected ApiCallTaskDelegate mDelegate;
     protected boolean mUseSSL;
     protected boolean mSSLTrustAll;
@@ -106,7 +110,7 @@ abstract public class ApiCallBase {
         return this;
     }
 
-    public static String encrDid(String deviceGuid, String deviceFriendlyName, String oldDeviceGuid) {
+    private static String encrDid(String deviceGuid, String deviceFriendlyName, String oldDeviceGuid) {
 
         if (StringUtils.isNullOrEmpty(deviceGuid)) {
             return null;
@@ -124,6 +128,32 @@ abstract public class ApiCallBase {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+
+        return tkr;
+    }
+
+    private static String encrDid2(String deviceGuid, String deviceFriendlyName, String oldDeviceGuid, String encrKey) {
+
+        if (StringUtils.isNullOrEmpty(deviceGuid) || StringUtils.isNullOrEmpty(encrKey)) {
+            return null;
+        }
+
+        String friendlyName = !StringUtils.isNullOrEmpty(deviceFriendlyName) ? deviceFriendlyName
+                : "-unknown-";
+        String joined = deviceGuid + "|" + friendlyName + "|" + "android" +
+                (!StringUtils.isNullOrEmpty(oldDeviceGuid) ? "|" + oldDeviceGuid : "");
+
+        String tkr = null;
+
+        JNCryptor cryptor = new AES256JNCryptor();
+        byte[] plaintext = joined.getBytes();
+
+        try {
+            byte[] ct = cryptor.encryptData(plaintext, encrKey.toCharArray());
+            tkr = new String(android.util.Base64.encode(ct, android.util.Base64.DEFAULT), "UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return tkr;
@@ -305,6 +335,12 @@ abstract public class ApiCallBase {
         return this;
     }
 
+    public void setEncrUseSecondMethod(boolean useSecondMethod, String encrKey) {
+        mEncrUseSecondMethod = useSecondMethod;
+        mEncrKey = encrKey;
+        mDId = null;
+    }
+
     protected void log(String str) {
         if (mLogger != null) {
             mLogger.info(mConnectionId + ": " + str);
@@ -453,7 +489,11 @@ abstract public class ApiCallBase {
     protected synchronized String getDeviceIdEncrypted() {
         // encrypt / hash the device id
         if (mDId == null) {
-            mDId = encrDid(mDeviceGuid, mDeviceFriendlyName, mOldDeviceGuid);
+            if (mEncrUseSecondMethod) {
+                mDId = encrDid2(mDeviceGuid, mDeviceFriendlyName, mOldDeviceGuid, mEncrKey);
+            } else {
+                mDId = encrDid(mDeviceGuid, mDeviceFriendlyName, mOldDeviceGuid);
+            }
             logDebug("Created X-Device: " + mDId);
         }
 
