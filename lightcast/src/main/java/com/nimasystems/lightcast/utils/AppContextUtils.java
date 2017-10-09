@@ -102,6 +102,24 @@ public class AppContextUtils {
         return accounts[0];
     }
 
+    public static String getPackageName(Context context) {
+
+        String userAgent;
+        PackageInfo pInfo = null;
+        try {
+            pInfo = context.getPackageManager().getPackageInfo(
+                    context.getPackageName(), 0);
+        } catch (NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        if (pInfo == null) {
+            return null;
+        }
+
+        return pInfo.packageName;
+    }
+
     public static String getUserAgentString(Context context, String appName) {
 
         String userAgent;
@@ -132,6 +150,7 @@ public class AppContextUtils {
         ActivityManager activityManager = (ActivityManager) context
                 .getSystemService(android.content.Context.ACTIVITY_SERVICE);
 
+        // TODO: deprecated
         List<ActivityManager.RunningServiceInfo> serviceList = activityManager
                 .getRunningServices(Integer.MAX_VALUE);
         Log.w("", "className : " + className);
@@ -247,4 +266,7 @@ public class AppContextUtils {
         return availableBlocks * blockSize / (1024 * 1024);
     }
 
+    public static void openAppMarketPage(Activity activity) {
+        activity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + activity.getPackageName())));
+    }
 }

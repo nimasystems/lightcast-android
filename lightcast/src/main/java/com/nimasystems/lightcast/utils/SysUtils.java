@@ -59,6 +59,7 @@ public class SysUtils {
                 TelephonyManager tm = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
                 if (tm != null) {
+                    // TODO: deprecated
                     deviceId = tm.getDeviceId();
                     if (deviceId == null || deviceId.equals("")) {
                         deviceId = getCustomDeviceID();
