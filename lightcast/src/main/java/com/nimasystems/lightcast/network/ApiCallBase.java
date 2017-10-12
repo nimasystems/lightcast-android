@@ -27,11 +27,13 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -109,6 +111,8 @@ abstract public class ApiCallBase {
     protected String mDeviceGuid;
     protected String mOldDeviceGuid;
     protected String mLocale;
+
+    protected boolean mCallbackOnMainThread = true;
     protected boolean mSynchronizedCallback;
     protected ApiServerErrorModel mServerError;
     protected boolean mIsSynchronous;
@@ -264,8 +268,14 @@ abstract public class ApiCallBase {
         return this;
     }
 
-    public void setExecutor(Executor mExecutor) {
+    public ApiCallBase setExecutor(Executor mExecutor) {
         this.mExecutor = mExecutor;
+        return this;
+    }
+
+    public ApiCallBase setCallbackOnMainThread(boolean callbackOnMainThread) {
+        this.mCallbackOnMainThread = callbackOnMainThread;
+        return this;
     }
 
     public String getRequestPreparedQueryPath() {
@@ -610,7 +620,8 @@ abstract public class ApiCallBase {
         mResponseIsSuccess = false;
 
         logDebug("Connection failure (" + mConnectionUrl + "), Status code: "
-                + mResponseStatusCode);
+                + mResponseStatusCode + ", Error: " +
+                (anError != null ? anError.getErrorBody() : ""));
 
         doPostOperations();
     }
@@ -677,13 +688,28 @@ abstract public class ApiCallBase {
 
         // notify the delegate
         if (mDelegate != null) {
-            if (!mSynchronizedCallback && (mIsSynchronous || isOnMainThread())) {
-                if (isOnMainThread()) {
-                    if (mIsSuccessful) {
-                        mDelegate.didFinishTask(this);
+            if (mCallbackOnMainThread) {
+                if (!mSynchronizedCallback && (mIsSynchronous || isOnMainThread())) {
+                    if (isOnMainThread()) {
+                        if (mIsSuccessful) {
+                            mDelegate.didFinishTask(this);
+                        } else {
+                            mDelegate.didFinishTaskWithError(this, mLastErrorCode,
+                                    mLastErrorMessage, mServerError);
+                        }
                     } else {
-                        mDelegate.didFinishTaskWithError(this, mLastErrorCode,
-                                mLastErrorMessage, mServerError);
+                        Handler mainHandler = new Handler(mContext.getMainLooper());
+                        Runnable myRunnable = new Runnable() {
+                            public void run() {
+                                if (mIsSuccessful) {
+                                    mDelegate.didFinishTask(ApiCallBase.this);
+                                } else {
+                                    mDelegate.didFinishTaskWithError(ApiCallBase.this, mLastErrorCode,
+                                            mLastErrorMessage, mServerError);
+                                }
+                            }
+                        };
+                        mainHandler.post(myRunnable);
                     }
                 } else {
                     Handler mainHandler = new Handler(mContext.getMainLooper());
@@ -692,27 +718,22 @@ abstract public class ApiCallBase {
                             if (mIsSuccessful) {
                                 mDelegate.didFinishTask(ApiCallBase.this);
                             } else {
-                                mDelegate.didFinishTaskWithError(ApiCallBase.this, mLastErrorCode,
-                                        mLastErrorMessage, mServerError);
+                                mDelegate.didFinishTaskWithError(ApiCallBase.this,
+                                        mLastErrorCode, mLastErrorMessage,
+                                        mServerError);
                             }
                         }
                     };
                     mainHandler.post(myRunnable);
                 }
             } else {
-                Handler mainHandler = new Handler(mContext.getMainLooper());
-                Runnable myRunnable = new Runnable() {
-                    public void run() {
-                        if (mIsSuccessful) {
-                            mDelegate.didFinishTask(ApiCallBase.this);
-                        } else {
-                            mDelegate.didFinishTaskWithError(ApiCallBase.this,
-                                    mLastErrorCode, mLastErrorMessage,
-                                    mServerError);
-                        }
-                    }
-                };
-                mainHandler.post(myRunnable);
+                if (mIsSuccessful) {
+                    mDelegate.didFinishTask(ApiCallBase.this);
+                } else {
+                    mDelegate.didFinishTaskWithError(ApiCallBase.this,
+                            mLastErrorCode, mLastErrorMessage,
+                            mServerError);
+                }
             }
         }
     }
@@ -803,6 +824,44 @@ abstract public class ApiCallBase {
         return new OkHttpClient().newBuilder();
     }
 
+    protected HashMap<String, String> preparedParams() {
+        HashMap<String, String> ret = new HashMap<>();
+
+        RequestParams requestParams = filterRequestParams(getRequestParams());
+
+        if (requestParams != null) {
+            ConcurrentHashMap<String, String> p1 = requestParams.getUrlParams();
+
+            for (String key : p1.keySet()) {
+                String val = p1.get(key);
+
+                if (val != null && !StringUtils.isNullOrEmpty(val) && !val.equals("0")) {
+                    ret.put(key, val);
+                }
+            }
+
+            ConcurrentHashMap<String, Object> p2 = requestParams.getUrlParamsWithObjects();
+
+            for (String key : p2.keySet()) {
+                Object val = p2.get(key);
+                String v = "";
+
+                if (val instanceof Boolean) {
+                    v = ((Boolean) val) ? "1" : "";
+                } else if (val instanceof Number) {
+                    v = String.valueOf(val);
+                    v = v != null && v.equals("0") ? "" : v;
+                }
+
+                if (!StringUtils.isNullOrEmpty(v)) {
+                    ret.put(key, v);
+                }
+            }
+        }
+
+        return ret;
+    }
+
     @SuppressLint("ObsoleteSdkInt")
     protected boolean executeInternal(boolean synchronous,
                                       String serverHostname, String serverAddress, boolean useSSL) throws UnsupportedEncodingException {
@@ -884,19 +943,33 @@ abstract public class ApiCallBase {
         // prepare the request
         RequestBuilder builder;
 
-        boolean addParams = false;
+        HashMap<String, String> preparedRequestParams = preparedParams();
 
         if (rt == RequestType.Post) {
-            addParams = true;
             builder = new ANRequest.PostRequestBuilder<>(mConnectionUrl);
+
+            if (preparedRequestParams != null) {
+                ((ANRequest.PostRequestBuilder) builder).addBodyParameter(preparedRequestParams);
+            }
+
         } else if (rt == RequestType.Put) {
-            addParams = true;
             builder = new ANRequest.PutRequestBuilder(mConnectionUrl);
+
+            if (preparedRequestParams != null) {
+                ((ANRequest.PostRequestBuilder) builder).addBodyParameter(preparedRequestParams);
+            }
         } else if (rt == RequestType.Delete) {
-            addParams = true;
             builder = new ANRequest.DeleteRequestBuilder(mConnectionUrl);
+
+            if (preparedRequestParams != null) {
+                ((ANRequest.PostRequestBuilder) builder).addBodyParameter(preparedRequestParams);
+            }
         } else {
             builder = new ANRequest.GetRequestBuilder(mConnectionUrl);
+
+            if (preparedRequestParams != null) {
+                builder.addQueryParameter(preparedRequestParams);
+            }
         }
 
         // set the headers
@@ -913,15 +986,6 @@ abstract public class ApiCallBase {
         // user agent
         if (!StringUtils.isNullOrEmpty(mRequestUserAgent)) {
             builder.addHeaders("User-Agent", mRequestUserAgent);
-        }
-
-        // set the request params
-        if (addParams) {
-            RequestParams requestParams = filterRequestParams(getRequestParams());
-
-            if (requestParams != null) {
-                builder.addQueryParameter(requestParams.getUrlParams());
-            }
         }
 
         // prepare OkHttpClient
@@ -1011,7 +1075,7 @@ abstract public class ApiCallBase {
 
         if (synchronous) {
             try {
-                ANResponse response = request.executeForOkHttpResponse();
+                ANResponse response = request.executeForJSONObject();
 
                 if (response == null) {
                     onConnectionFailure(null);
@@ -1019,6 +1083,9 @@ abstract public class ApiCallBase {
                     onConnectionSuccess(response.getOkHttpResponse(), (JSONObject) response.getResult());
                 }
 
+            } catch (Exception e) {
+                e.printStackTrace();
+                onConnectionFailure(null);
             } finally {
                 onConnectionFinish();
             }
