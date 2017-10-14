@@ -73,11 +73,10 @@ abstract public class ApiCallBase {
     private static final String DEFAULT_REQUEST_CHARSET = "UTF-8";
     public static final int DEFAULT_MAX_RETRIES = 3;
 
-    public static final String XDG_HEADER_NAME = "X-Device-UUID";
-    public static final String XAT_HEADER_NAME = "X-User-Ac";
-    public static final String XTZ_HEADER_NAME = "X-TZ";
-
-    public static final String X_CLIENT_API_LEVEL_HEADER_NAME = "X-Gymnadz-Version";
+    public static final String DEFAULT_XDG_HEADER_NAME = "X-Device-UUID";
+    public static final String DEFAULT_XAT_HEADER_NAME = "X-User-Ac";
+    public static final String DEFAULT_X_CLIENT_API_LEVEL_HEADER_NAME = "X-App-Version";
+    public static final String DEFAULT_XTZ_HEADER_NAME = "X-TZ";
 
     public static final String DEFAULT_ACCEPTED_MIMETYPE = "application/json";
 
@@ -134,6 +133,14 @@ abstract public class ApiCallBase {
     private String mHttpAuthPassword;
     private boolean mIsBusy;
     private TimeZone mServerTimezone;
+
+    private String mDeviceGuidHeaderName = DEFAULT_XDG_HEADER_NAME;
+
+    private String mUserAccessTokenHeaderName = DEFAULT_XAT_HEADER_NAME;
+
+    private String mTimezoneHeaderName = DEFAULT_XTZ_HEADER_NAME;
+
+    private String mAppVersionHeaderName = DEFAULT_X_CLIENT_API_LEVEL_HEADER_NAME;
 
     public String getObjectTag() {
         return objectTag;
@@ -255,7 +262,9 @@ abstract public class ApiCallBase {
         return null;
     }
 
-    abstract protected boolean parseJSONResponse(@NonNull JSONObject response);
+    protected boolean parseJSONResponse(@NonNull JSONObject response) {
+        return true;
+    }
 
     abstract protected String getRequestQueryPath();
 
@@ -281,13 +290,19 @@ abstract public class ApiCallBase {
     public String getRequestPreparedQueryPath() {
         String ret = null;
         String qp = getRequestQueryPath();
+        String query = getRequestQuery();
 
         if (qp != null) {
-            ret = (!StringUtils.isNullOrEmpty(this.mQueryPathPrefix) ? this.mQueryPathPrefix
-                    + qp
-                    : qp);
+            ret = (!StringUtils.isNullOrEmpty(this.mQueryPathPrefix) ? this.mQueryPathPrefix : "") +
+                    qp +
+                    (query != null ? "?" + query : "");
         }
+
         return ret;
+    }
+
+    protected String getRequestQuery() {
+        return null;
     }
 
     public int getClientAPILevel() {
@@ -428,7 +443,25 @@ abstract public class ApiCallBase {
         return this;
     }
 
-    abstract protected RequestType getRequestType();
+    public void setDeviceGuidHeaderName(String deviceGuidHeaderName) {
+        this.mDeviceGuidHeaderName = deviceGuidHeaderName;
+    }
+
+    public void setUserAccessTokenHeaderName(String userAccessTokenHeaderName) {
+        this.mUserAccessTokenHeaderName = userAccessTokenHeaderName;
+    }
+
+    public void setTimezoneHeaderName(String timezoneHeaderName) {
+        this.mTimezoneHeaderName = timezoneHeaderName;
+    }
+
+    public void setAppVersionHeaderName(String appVersionHeaderName) {
+        this.mAppVersionHeaderName = appVersionHeaderName;
+    }
+
+    protected RequestType getRequestType() {
+        return RequestType.Get;
+    }
 
     public ApiCallBase setAccessToken(String accessToken) {
         mAccessToken = accessToken;
@@ -554,19 +587,19 @@ abstract public class ApiCallBase {
 
         // access token
         if (!StringUtils.isNullOrEmpty(accessToken)) {
-            mRequestHeaders.add(new Header(XAT_HEADER_NAME, accessToken));
+            mRequestHeaders.add(new Header(mUserAccessTokenHeaderName, accessToken));
         }
 
         // device id
         String dIdEnc = getDeviceIdEncrypted();
 
         if (!StringUtils.isNullOrEmpty(dIdEnc)) {
-            mRequestHeaders.add(new Header(XDG_HEADER_NAME, dIdEnc));
+            mRequestHeaders.add(new Header(mDeviceGuidHeaderName, dIdEnc));
         }
 
         // client API Level
         if (mClientAPILevel > 0) {
-            mRequestHeaders.add(new Header(X_CLIENT_API_LEVEL_HEADER_NAME, String.valueOf(mClientAPILevel)));
+            mRequestHeaders.add(new Header(mAppVersionHeaderName, String.valueOf(mClientAPILevel)));
         }
 
         // accept language fixing
@@ -673,7 +706,7 @@ abstract public class ApiCallBase {
         }
 
         // timezone
-        String tzCode = getResponseHeaderValue(XTZ_HEADER_NAME);
+        String tzCode = getResponseHeaderValue(mTimezoneHeaderName);
 
         if (!StringUtils.isNullOrEmpty(tzCode)) {
             mServerTimezone = TimeZone.getTimeZone(tzCode);
@@ -766,6 +799,8 @@ abstract public class ApiCallBase {
                 } else {
                     mIsSuccessful = parseJSONResponse(mResponseJson);
                 }
+            } else {
+                mIsSuccessful = true;
             }
 
         } catch (Exception e) {
@@ -780,7 +815,9 @@ abstract public class ApiCallBase {
         return null;
     }
 
-    abstract protected RequestParams getRequestParams();
+    protected RequestParams getRequestParams() {
+        return null;
+    }
 
     protected int getRequestMaxRetries() {
         return DEFAULT_MAX_RETRIES;
@@ -824,10 +861,10 @@ abstract public class ApiCallBase {
         return new OkHttpClient().newBuilder();
     }
 
-    protected HashMap<String, String> preparedParams() {
+    protected HashMap<String, String> preparedParams(RequestParams rp) {
         HashMap<String, String> ret = new HashMap<>();
 
-        RequestParams requestParams = filterRequestParams(getRequestParams());
+        RequestParams requestParams = rp != null ? filterRequestParams(rp) : null;
 
         if (requestParams != null) {
             ConcurrentHashMap<String, String> p1 = requestParams.getUrlParams();
@@ -943,9 +980,26 @@ abstract public class ApiCallBase {
         // prepare the request
         RequestBuilder builder;
 
-        HashMap<String, String> preparedRequestParams = preparedParams();
+        RequestParams rparams = getRequestParams();
+        HashMap<String, String> preparedRequestParams = preparedParams(rparams);
 
-        if (rt == RequestType.Post) {
+        ConcurrentHashMap<String, RequestParams.FileWrapper> fparams = rparams != null ? rparams.getFileParams() : null;
+        boolean requestIsMultipart = fparams != null && fparams.size() > 0;
+
+        if (requestIsMultipart) {
+            builder = new ANRequest.MultiPartBuilder<>(mConnectionUrl);
+
+            if (preparedRequestParams != null) {
+                ((ANRequest.MultiPartBuilder) builder).addMultipartParameter(preparedRequestParams);
+            }
+
+            if (fparams != null) {
+                for (String key : fparams.keySet()) {
+                    ((ANRequest.MultiPartBuilder) builder).addMultipartFile(key, fparams.get(key).file);
+                }
+            }
+
+        } else if (rt == RequestType.Post) {
             builder = new ANRequest.PostRequestBuilder<>(mConnectionUrl);
 
             if (preparedRequestParams != null) {
@@ -1061,7 +1115,9 @@ abstract public class ApiCallBase {
 
         ANRequest request;
 
-        if (rt == RequestType.Post) {
+        if (requestIsMultipart) {
+            request = ((ANRequest.MultiPartBuilder) builder).build();
+        } else if (rt == RequestType.Post) {
             request = ((ANRequest.PostRequestBuilder) builder).build();
         } else if (rt == RequestType.Put) {
             request = ((ANRequest.PutRequestBuilder) builder).build();
