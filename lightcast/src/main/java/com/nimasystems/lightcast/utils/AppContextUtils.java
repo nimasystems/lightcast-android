@@ -150,21 +150,22 @@ public class AppContextUtils {
         ActivityManager activityManager = (ActivityManager) context
                 .getSystemService(android.content.Context.ACTIVITY_SERVICE);
 
-        // TODO: deprecated
-        List<ActivityManager.RunningServiceInfo> serviceList = activityManager
-                .getRunningServices(Integer.MAX_VALUE);
-        Log.w("", "className : " + className);
+        if (activityManager != null) {
+            List<ActivityManager.RunningServiceInfo> serviceList = activityManager
+                    .getRunningServices(Integer.MAX_VALUE);
+            Log.w("", "className : " + className);
 
-        if (!(serviceList.size() > 0)) {
-            return null;
-        }
+            if (!(serviceList.size() > 0)) {
+                return null;
+            }
 
-        for (int i = 0; i < serviceList.size(); i++) {
-            RunningServiceInfo serviceInfo = serviceList.get(i);
-            ComponentName serviceName = serviceInfo.service;
+            for (int i = 0; i < serviceList.size(); i++) {
+                RunningServiceInfo serviceInfo = serviceList.get(i);
+                ComponentName serviceName = serviceInfo.service;
 
-            if (serviceName.getClassName().equals(className)) {
-                return serviceName;
+                if (serviceName.getClassName().equals(className)) {
+                    return serviceName;
+                }
             }
         }
 

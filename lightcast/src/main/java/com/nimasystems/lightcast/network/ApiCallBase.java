@@ -118,9 +118,7 @@ abstract public class ApiCallBase {
     protected boolean mIsCancelled;
     protected boolean mIsSuccessful;
     protected int mLastErrorCode;
-    protected boolean mEncrUseSecondMethod;
     protected String mLastErrorMessage;
-    protected String mEncrKey;
     protected ApiCallTaskDelegate mDelegate;
     protected boolean mUseSSL;
     protected boolean mSSLTrustAll;
@@ -165,7 +163,7 @@ abstract public class ApiCallBase {
         return this;
     }
 
-    private static String encrDid(String deviceGuid, String deviceFriendlyName, String oldDeviceGuid) {
+    public static String encrDid(String deviceGuid, String deviceFriendlyName, String oldDeviceGuid) {
 
         if (StringUtils.isNullOrEmpty(deviceGuid)) {
             return null;
@@ -188,7 +186,7 @@ abstract public class ApiCallBase {
         return tkr;
     }
 
-    private static String encrDid2(String deviceGuid, String deviceFriendlyName, String oldDeviceGuid, String encrKey) {
+    public static String encrDid2(String deviceGuid, String deviceFriendlyName, String oldDeviceGuid, String encrKey) {
 
         if (StringUtils.isNullOrEmpty(deviceGuid) || StringUtils.isNullOrEmpty(encrKey)) {
             return null;
@@ -368,12 +366,6 @@ abstract public class ApiCallBase {
         return this;
     }
 
-    public void setEncrUseSecondMethod(boolean useSecondMethod, String encrKey) {
-        mEncrUseSecondMethod = useSecondMethod;
-        mEncrKey = encrKey;
-        mDId = null;
-    }
-
     protected void log(String str) {
         if (mLogger != null) {
             mLogger.info(mConnectionId + ": " + str);
@@ -523,20 +515,17 @@ abstract public class ApiCallBase {
         return mLastErrorCode;
     }
 
-    private static String mDId;
-
-    protected synchronized String getDeviceIdEncrypted() {
+    public synchronized String getDeviceIdEncrypted(boolean useSecondMethod, String key) {
         // encrypt / hash the device id
-        if (mDId == null) {
-            if (mEncrUseSecondMethod) {
-                mDId = encrDid2(mDeviceGuid, mDeviceFriendlyName, mOldDeviceGuid, mEncrKey);
-            } else {
-                mDId = encrDid(mDeviceGuid, mDeviceFriendlyName, mOldDeviceGuid);
-            }
-            logDebug("Created X-Device: " + mDId);
+        String deviceId;
+
+        if (useSecondMethod) {
+            deviceId = encrDid2(mDeviceGuid, mDeviceFriendlyName, mOldDeviceGuid, key);
+        } else {
+            deviceId = encrDid(mDeviceGuid, mDeviceFriendlyName, mOldDeviceGuid);
         }
 
-        return escapeHeaderValue(mDId);
+        return escapeHeaderValue(deviceId);
     }
 
     protected void disableConnectionReuseIfNecessary() {
@@ -591,7 +580,7 @@ abstract public class ApiCallBase {
         }
 
         // device id
-        String dIdEnc = getDeviceIdEncrypted();
+        String dIdEnc = mDeviceGuid;
 
         if (!StringUtils.isNullOrEmpty(dIdEnc)) {
             mRequestHeaders.add(new Header(mDeviceGuidHeaderName, dIdEnc));
@@ -993,10 +982,8 @@ abstract public class ApiCallBase {
                 ((ANRequest.MultiPartBuilder) builder).addMultipartParameter(preparedRequestParams);
             }
 
-            if (fparams != null) {
-                for (String key : fparams.keySet()) {
-                    ((ANRequest.MultiPartBuilder) builder).addMultipartFile(key, fparams.get(key).file);
-                }
+            for (String key : fparams.keySet()) {
+                ((ANRequest.MultiPartBuilder) builder).addMultipartFile(key, fparams.get(key).file);
             }
 
         } else if (rt == RequestType.Post) {

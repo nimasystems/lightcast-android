@@ -45,7 +45,7 @@ public class SysUtils {
      * @return device id. If there is not available (tablets and etc.) it
      * returns custom device id.
      */
-    @SuppressLint("HardwareIds")
+    @SuppressLint({"HardwareIds", "MissingPermission"})
     public static synchronized String getDeviceId(Context context, boolean useTelephone) {
 
         if (!StringUtils.isNullOrEmpty(mDeviceId)) {
@@ -59,7 +59,6 @@ public class SysUtils {
                 TelephonyManager tm = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
                 if (tm != null) {
-                    // TODO: deprecated
                     deviceId = tm.getDeviceId();
                     if (deviceId == null || deviceId.equals("")) {
                         deviceId = getCustomDeviceID();
@@ -164,9 +163,13 @@ public class SysUtils {
                                         PendingIntent.FLAG_CANCEL_CURRENT);
                         AlarmManager mgr = (AlarmManager) c
                                 .getSystemService(Context.ALARM_SERVICE);
-                        mgr.set(AlarmManager.RTC,
-                                System.currentTimeMillis() + 100,
-                                mPendingIntent);
+
+                        if (mgr != null) {
+                            mgr.set(AlarmManager.RTC,
+                                    System.currentTimeMillis() + 100,
+                                    mPendingIntent);
+                        }
+
                         // kill the application
                         System.exit(0);
                     } else {
