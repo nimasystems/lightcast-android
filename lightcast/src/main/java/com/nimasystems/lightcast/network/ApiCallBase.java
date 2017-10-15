@@ -629,7 +629,7 @@ abstract public class ApiCallBase {
         logDebug("Connection success (" + mConnectionUrl + "), Status code: "
                 + mResponseStatusCode);
 
-        doPostOperations();
+        doPostOperations(true);
     }
 
     protected void onConnectionFailure(ANError anError) {
@@ -645,7 +645,7 @@ abstract public class ApiCallBase {
                 + mResponseStatusCode + ", Error: " +
                 (anError != null ? anError.getErrorBody() : ""));
 
-        doPostOperations();
+        doPostOperations(false);
     }
 
     protected List<Header> makeResponseHeaders(Headers headers) {
@@ -702,11 +702,13 @@ abstract public class ApiCallBase {
         }
     }
 
-    protected void doPostOperations() {
+    protected void doPostOperations(boolean isConnectionSuccess) {
         parseResponseHeaders();
-        parseResponse();
+
+        boolean parseSuccess = parseResponse();
 
         mIsBusy = false;
+        mIsSuccessful = isConnectionSuccess && parseSuccess;
 
         // notify the delegate
         if (mDelegate != null) {
@@ -772,7 +774,9 @@ abstract public class ApiCallBase {
         return (Looper.myLooper() == Looper.getMainLooper());
     }
 
-    protected void parseResponse() {
+    protected boolean parseResponse() {
+
+        boolean isSuccessful = false;
 
         try {
             if (mResponseJson != null) {
@@ -782,14 +786,14 @@ abstract public class ApiCallBase {
                 mServerError = parseResponseForError(mResponseJson);
 
                 if (mServerError != null) {
-                    mIsSuccessful = false;
+                    isSuccessful = false;
                     mLastErrorCode = mServerError.code;
                     mLastErrorMessage = mServerError.message;
                 } else {
-                    mIsSuccessful = parseJSONResponse(mResponseJson);
+                    isSuccessful = parseJSONResponse(mResponseJson);
                 }
             } else {
-                mIsSuccessful = true;
+                isSuccessful = true;
             }
 
         } catch (Exception e) {
@@ -798,6 +802,8 @@ abstract public class ApiCallBase {
 
             mLastErrorMessage = e.getMessage();
         }
+
+        return isSuccessful;
     }
 
     protected String getRequestContentType() {
@@ -1181,7 +1187,7 @@ abstract public class ApiCallBase {
         }
 
         if (!ret) {
-            doPostOperations();
+            doPostOperations(false);
         }
 
         return ret;
@@ -1197,7 +1203,7 @@ abstract public class ApiCallBase {
         }
 
         if (!ret) {
-            doPostOperations();
+            doPostOperations(false);
         }
 
         return ret;
