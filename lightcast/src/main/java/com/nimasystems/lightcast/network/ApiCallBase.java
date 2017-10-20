@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -896,7 +895,7 @@ abstract public class ApiCallBase {
 
     @SuppressLint("ObsoleteSdkInt")
     protected boolean executeInternal(boolean synchronous,
-                                      String serverHostname, String serverAddress, boolean useSSL) throws UnsupportedEncodingException {
+                                      String serverHostname, String serverAddress, boolean useSSL) {
 
         if (!verifyCallParams()) {
             if (mDebug) {
@@ -984,12 +983,14 @@ abstract public class ApiCallBase {
         if (requestIsMultipart) {
             builder = new ANRequest.MultiPartBuilder<>(mConnectionUrl);
 
-            if (preparedRequestParams != null) {
-                ((ANRequest.MultiPartBuilder) builder).addMultipartParameter(preparedRequestParams);
-            }
+            //noinspection ConstantConditions
+            if (builder instanceof ANRequest.MultiPartBuilder) {
+                ANRequest.MultiPartBuilder bb = (ANRequest.MultiPartBuilder) builder;
+                bb.addMultipartParameter(preparedRequestParams);
 
-            for (String key : fparams.keySet()) {
-                ((ANRequest.MultiPartBuilder) builder).addMultipartFile(key, fparams.get(key).file);
+                for (String key : fparams.keySet()) {
+                    bb.addMultipartFile(key, fparams.get(key).file);
+                }
             }
 
         } else if (rt == RequestType.Post) {

@@ -15,6 +15,18 @@ public class IntegerUtils {
         return ret;
     }
 
+    public static double getSafeDouble(String str) {
+        double ret = 0;
+
+        try {
+            ret = Double.parseDouble(str);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return ret;
+    }
+
     public static long getSafeLong(String str) {
         long ret = 0;
 
