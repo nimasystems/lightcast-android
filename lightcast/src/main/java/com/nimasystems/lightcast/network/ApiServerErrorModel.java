@@ -11,4 +11,9 @@ public class ApiServerErrorModel {
     public JSONObject extraData;
 
     public ArrayList<ApiServerValidationError> validationErrors;
+
+    @Override
+    public String toString() {
+        return message;
+    }
 }

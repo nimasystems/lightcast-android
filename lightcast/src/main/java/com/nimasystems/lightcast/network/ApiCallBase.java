@@ -19,6 +19,7 @@ import com.nimasystems.lightcast.utils.StringUtils;
 
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -235,18 +236,18 @@ abstract public class ApiCallBase {
                             .optJSONObject("validation_errors");
                     if (vJErrs != null) {
                         ArrayList<ApiServerValidationError> vErrs = new ArrayList<>();
-                        ApiServerValidationError verr = new ApiServerValidationError();
-                        StringBuilder errorMessage = new StringBuilder("\nValidation Errors\n\n");
+                        ApiServerValidationError verr;
 
                         Iterator<?> keys = vJErrs.keys();
                         while (keys.hasNext()) {
                             String key = (String) keys.next();
                             String error = vJErrs.optString(key);
-                            errorMessage.append(key).append(": ").append(error).append("\n");
-                        }
 
-                        verr.message = errorMessage.toString();
-                        vErrs.add(verr);
+                            verr = new ApiServerValidationError();
+                            verr.fieldName = key;
+                            verr.message = error;
+                            vErrs.add(verr);
+                        }
 
                         err.validationErrors = vErrs;
                     }
@@ -634,10 +635,22 @@ abstract public class ApiCallBase {
     protected void onConnectionFailure(ANError anError) {
         Response response = anError != null ? anError.getResponse() : null;
 
+        String errorBody = anError != null ? anError.getErrorBody() : null;
+
+        mResponseJson = null;
+
+        if (errorBody != null) {
+            try {
+                mResponseJson = new JSONObject(errorBody);
+
+            } catch (JSONException e) {
+                //
+            }
+        }
+
         mResponseStatusCode = response != null ? response.code() : 0;
         mResponseHeaders = makeResponseHeaders(response != null ? response.headers() : null);
         mResponseBody = response != null ? response.body() : null;
-        mResponseJson = null;
         mResponseIsSuccess = false;
 
         logDebug("Connection failure (" + mConnectionUrl + "), Status code: "
