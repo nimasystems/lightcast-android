@@ -111,6 +111,9 @@ abstract public class ApiCallBase {
     protected String mOldDeviceGuid;
     protected String mLocale;
 
+    private String oAuth2BearerToken;
+    private boolean oAuth2AuthenticationEnabled;
+
     protected boolean mCallbackOnMainThread = true;
     protected boolean mSynchronizedCallback;
     protected ApiServerErrorModel mServerError;
@@ -145,6 +148,12 @@ abstract public class ApiCallBase {
     }
 
     private String objectTag;
+
+    private ApiCallBaseErrorFilter errorFilterListener;
+
+    public interface ApiCallBaseErrorFilter {
+        boolean onError(@NonNull final ApiCallBase apiCall, final ApiServerErrorModel error);
+    }
 
     public ApiCallBase(Context context) {
         mContext = context;
@@ -212,6 +221,11 @@ abstract public class ApiCallBase {
         return tkr;
     }
 
+    public ApiCallBase setErrorFilterListener(ApiCallBaseErrorFilter errorFilterListener) {
+        this.errorFilterListener = errorFilterListener;
+        return this;
+    }
+
     protected static ApiServerErrorModel parseResponseForError(JSONObject obj) {
 
         ApiServerErrorModel err;
@@ -273,6 +287,14 @@ abstract public class ApiCallBase {
     public ApiCallBase setSynchronizedCallback(boolean syncCallback) {
         mSynchronizedCallback = syncCallback;
         return this;
+    }
+
+    public void setoAuth2BearerToken(String oAuth2BearerToken) {
+        this.oAuth2BearerToken = oAuth2BearerToken;
+    }
+
+    public void setoAuth2AuthenticationEnabled(boolean oAuth2AuthenticationEnabled) {
+        this.oAuth2AuthenticationEnabled = oAuth2AuthenticationEnabled;
     }
 
     public ApiCallBase setExecutor(Executor mExecutor) {
@@ -579,6 +601,11 @@ abstract public class ApiCallBase {
             mRequestHeaders.add(new Header(mUserAccessTokenHeaderName, accessToken));
         }
 
+        // OAuth2
+        if (oAuth2AuthenticationEnabled && !StringUtils.isNullOrEmpty(oAuth2BearerToken)) {
+            mRequestHeaders.add(new Header("Authorization", "Bearer " + oAuth2BearerToken));
+        }
+
         // device id
         String dIdEnc = mDeviceGuid;
 
@@ -642,7 +669,6 @@ abstract public class ApiCallBase {
         if (errorBody != null) {
             try {
                 mResponseJson = new JSONObject(errorBody);
-
             } catch (JSONException e) {
                 //
             }
@@ -730,8 +756,12 @@ abstract public class ApiCallBase {
                         if (mIsSuccessful) {
                             mDelegate.didFinishTask(this);
                         } else {
-                            mDelegate.didFinishTaskWithError(this, mLastErrorCode,
-                                    mLastErrorMessage, mServerError);
+                            boolean shouldProcess = errorFilterListener == null || errorFilterListener.onError(this, mServerError);
+
+                            if (shouldProcess) {
+                                mDelegate.didFinishTaskWithError(this, mLastErrorCode,
+                                        mLastErrorMessage, mServerError);
+                            }
                         }
                     } else {
                         Handler mainHandler = new Handler(mContext.getMainLooper());
@@ -740,8 +770,12 @@ abstract public class ApiCallBase {
                                 if (mIsSuccessful) {
                                     mDelegate.didFinishTask(ApiCallBase.this);
                                 } else {
-                                    mDelegate.didFinishTaskWithError(ApiCallBase.this, mLastErrorCode,
-                                            mLastErrorMessage, mServerError);
+                                    boolean shouldProcess = errorFilterListener == null || errorFilterListener.onError(ApiCallBase.this, mServerError);
+
+                                    if (shouldProcess) {
+                                        mDelegate.didFinishTaskWithError(ApiCallBase.this, mLastErrorCode,
+                                                mLastErrorMessage, mServerError);
+                                    }
                                 }
                             }
                         };
@@ -754,9 +788,13 @@ abstract public class ApiCallBase {
                             if (mIsSuccessful) {
                                 mDelegate.didFinishTask(ApiCallBase.this);
                             } else {
-                                mDelegate.didFinishTaskWithError(ApiCallBase.this,
-                                        mLastErrorCode, mLastErrorMessage,
-                                        mServerError);
+                                boolean shouldProcess = errorFilterListener == null || errorFilterListener.onError(ApiCallBase.this, mServerError);
+
+                                if (shouldProcess) {
+                                    mDelegate.didFinishTaskWithError(ApiCallBase.this,
+                                            mLastErrorCode, mLastErrorMessage,
+                                            mServerError);
+                                }
                             }
                         }
                     };
@@ -766,9 +804,13 @@ abstract public class ApiCallBase {
                 if (mIsSuccessful) {
                     mDelegate.didFinishTask(ApiCallBase.this);
                 } else {
-                    mDelegate.didFinishTaskWithError(ApiCallBase.this,
-                            mLastErrorCode, mLastErrorMessage,
-                            mServerError);
+                    boolean shouldProcess = errorFilterListener == null || errorFilterListener.onError(this, mServerError);
+
+                    if (shouldProcess) {
+                        mDelegate.didFinishTaskWithError(ApiCallBase.this,
+                                mLastErrorCode, mLastErrorMessage,
+                                mServerError);
+                    }
                 }
             }
         }
