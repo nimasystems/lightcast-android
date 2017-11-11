@@ -9,7 +9,7 @@ public class IntegerUtils {
         try {
             ret = Integer.parseInt(str);
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         return ret;
@@ -21,7 +21,7 @@ public class IntegerUtils {
         try {
             ret = Double.parseDouble(str);
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         return ret;
@@ -33,7 +33,7 @@ public class IntegerUtils {
         try {
             ret = Long.parseLong(str);
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         return ret;
@@ -45,7 +45,7 @@ public class IntegerUtils {
         try {
             ret = Float.parseFloat(str);
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         return ret;

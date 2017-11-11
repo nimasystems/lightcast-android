@@ -1081,6 +1081,14 @@ abstract public class ApiCallBase {
         Header[] allHeaders = getAllHeaders();
 
         if (allHeaders != null) {
+            logDebug("Prepared headers");
+
+            for (Header h : allHeaders) {
+                logDebug(h.getKey() + ": " + h.getValue());
+            }
+        }
+
+        if (allHeaders != null) {
             for (Header header : allHeaders) {
                 builder.addHeaders(header.getKey(), header.getValue());
             }
@@ -1097,6 +1105,8 @@ abstract public class ApiCallBase {
 
         // http auth
         if (mHttpAuthEnabled) {
+            logDebug("HTTP AUTH ENABLED");
+
             httpClientBuilder.authenticator(new Authenticator() {
                 @Override
                 public Request authenticate(Route route, Response response) throws IOException {
@@ -1108,6 +1118,8 @@ abstract public class ApiCallBase {
 
         // SSL trusting for fake / self-generated certificates
         if (trustSSL) {
+            logDebug("TRUST SSL enabled");
+
             // Create a trust manager that does not validate certificate chains
             final TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
