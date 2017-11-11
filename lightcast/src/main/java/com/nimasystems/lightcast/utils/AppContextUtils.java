@@ -75,10 +75,11 @@ public class AppContextUtils {
     public static boolean getLocationServicesEnabled(Context context) {
         LocationManager service = (LocationManager) context
                 .getSystemService(Context.LOCATION_SERVICE);
-        return (service.isProviderEnabled(LocationManager.GPS_PROVIDER) || service
-                .isProviderEnabled(LocationManager.NETWORK_PROVIDER));
+        return (service != null && (service.isProviderEnabled(LocationManager.GPS_PROVIDER) || service
+                .isProviderEnabled(LocationManager.NETWORK_PROVIDER)));
     }
 
+    @SuppressLint("MissingPermission")
     public static Account getCurrentAccount(Context context) {
         Account[] accounts = null;
 
@@ -173,29 +174,32 @@ public class AppContextUtils {
     }
 
     @SuppressWarnings("deprecation")
-    @SuppressLint("NewApi")
+    @SuppressLint({"NewApi", "ObsoleteSdkInt"})
     public static Point getScreenSize(Context context) {
         Point size = new Point();
         WindowManager wm = (WindowManager) context
                 .getSystemService(Context.WINDOW_SERVICE);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            wm.getDefaultDisplay().getSize(size);
-            return size;
-        } else {
-            Display d = wm.getDefaultDisplay();
-            int w = d.getWidth();
-            int h = d.getHeight();
-            size.x = w;
-            size.y = h;
+        if (wm != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+                wm.getDefaultDisplay().getSize(size);
+                return size;
+            } else {
+                Display d = wm.getDefaultDisplay();
+                int w = d.getWidth();
+                int h = d.getHeight();
+                size.x = w;
+                size.y = h;
+            }
         }
+
         return size;
     }
 
     public static boolean isOnline(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = (cm != null ? cm.getActiveNetworkInfo() : null);
+        @SuppressLint("MissingPermission") NetworkInfo netInfo = (cm != null ? cm.getActiveNetworkInfo() : null);
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
@@ -244,7 +248,10 @@ public class AppContextUtils {
         if (view == null) {
             view = new View(activity);
         }
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 
     @SuppressLint("NewApi")

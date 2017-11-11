@@ -53,6 +53,11 @@ public class RoundedCornersRelativeLayout extends RelativeLayout {
 
     @Override
     public void draw(Canvas canvas) {
+        if (canvas.getHeight() < 1 || canvas.getWidth() < 1) {
+            super.draw(canvas);
+            return;
+        }
+
         Bitmap offscreenBitmap = Bitmap.createBitmap(canvas.getWidth(), canvas.getHeight(), Bitmap.Config.ARGB_8888);
         Canvas offscreenCanvas = new Canvas(offscreenBitmap);
 
