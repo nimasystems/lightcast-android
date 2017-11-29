@@ -80,6 +80,8 @@ abstract public class ApiCallBase {
 
     public static final String DEFAULT_ACCEPTED_MIMETYPE = "application/json";
 
+    public static final String DEFAULT_ERROR_EXTRA_DATA_KEY = "data";
+
     public static final int DEFAULT_CONNECT_TIMEOUT = 10000;
     public static final int DEFAULT_READ_TIMEOUT = 30000;
     public static final int DEFAULT_WRITE_TIMEOUT = 10000;
@@ -110,6 +112,8 @@ abstract public class ApiCallBase {
     protected String mDeviceGuid;
     protected String mOldDeviceGuid;
     protected String mLocale;
+
+    protected String errorExtrDataKey = DEFAULT_ERROR_EXTRA_DATA_KEY;
 
     private String oAuth2BearerToken;
     private boolean oAuth2AuthenticationEnabled;
@@ -226,7 +230,11 @@ abstract public class ApiCallBase {
         return this;
     }
 
-    protected static ApiServerErrorModel parseResponseForError(JSONObject obj) {
+    public void setErrorExtrDataKey(String errorExtrDataKey) {
+        this.errorExtrDataKey = errorExtrDataKey;
+    }
+
+    protected static ApiServerErrorModel parseResponseForError(String errorExtrDataKey, JSONObject obj) {
 
         ApiServerErrorModel err;
 
@@ -243,7 +251,9 @@ abstract public class ApiCallBase {
                     err.code = code;
                     err.domainName = domain;
                     err.message = message;
-                    err.extraData = objError.optJSONObject("data");
+
+                    // ###### warning - fix! (was data)
+                    err.extraData = objError.optJSONObject(errorExtrDataKey);
 
                     // validation errors
                     JSONObject vJErrs = objError
@@ -837,7 +847,7 @@ abstract public class ApiCallBase {
                 logDebug("HTTP Response: " + mResponseJson.toString());
 
                 // parse for a server error
-                mServerError = parseResponseForError(mResponseJson);
+                mServerError = parseResponseForError(errorExtrDataKey, mResponseJson);
 
                 if (mServerError != null) {
                     isSuccessful = false;
