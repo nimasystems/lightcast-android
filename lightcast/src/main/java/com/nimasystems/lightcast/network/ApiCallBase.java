@@ -161,14 +161,19 @@ abstract public class ApiCallBase {
 
     public ApiCallBase(Context context) {
         mContext = context;
-        mRequestHeaders = new ArrayList<>();
-        objectTag = UUID.randomUUID().toString();
+        init();
     }
 
     public ApiCallBase(Context context, ApiCallTaskDelegate delegate) {
         mContext = context;
         mDelegate = delegate;
+        init();
+    }
+
+    protected void init() {
+        objectTag = UUID.randomUUID().toString();
         mRequestHeaders = new ArrayList<>();
+        trustAllCerts = new TrustManager[]{mX509TrustManager};
     }
 
     public ApiCallBase setDelegate(ApiCallTaskDelegate delegate) {
@@ -650,6 +655,8 @@ abstract public class ApiCallBase {
 
     protected void onConnectionFinish() {
         logDebug("Connection finish (" + mConnectionUrl + ")");
+
+        mOKHttpClient = null;
     }
 
     protected void onConnectionCancel() {
@@ -838,6 +845,33 @@ abstract public class ApiCallBase {
         return (Looper.myLooper() == Looper.getMainLooper());
     }
 
+    private TrustManager[] trustAllCerts;
+
+    private X509TrustManager mX509TrustManager = new X509TrustManager() {
+        @SuppressLint("TrustAllX509TrustManager")
+        @Override
+        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+        }
+
+        @SuppressLint("TrustAllX509TrustManager")
+        @Override
+        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+        }
+
+        @Override
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[]{};
+        }
+    };
+
+    private HostnameVerifier mHostnameVerifier = new HostnameVerifier() {
+        @SuppressLint("BadHostnameVerifier")
+        @Override
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
+
     protected boolean parseResponse() {
 
         boolean isSuccessful = false;
@@ -957,6 +991,8 @@ abstract public class ApiCallBase {
 
         return ret;
     }
+
+    private OkHttpClient mOKHttpClient;
 
     @SuppressLint("ObsoleteSdkInt")
     protected boolean executeInternal(boolean synchronous,
@@ -1131,25 +1167,6 @@ abstract public class ApiCallBase {
             logDebug("TRUST SSL enabled");
 
             // Create a trust manager that does not validate certificate chains
-            final TrustManager[] trustAllCerts = new TrustManager[]{
-                    new X509TrustManager() {
-                        @SuppressLint("TrustAllX509TrustManager")
-                        @Override
-                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-                        }
-
-                        @SuppressLint("TrustAllX509TrustManager")
-                        @Override
-                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-                        }
-
-                        @Override
-                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                            return new java.security.cert.X509Certificate[]{};
-                        }
-                    }
-            };
-
             // Install the all-trusting trust manager
             final SSLContext sslContext;
 
@@ -1161,13 +1178,7 @@ abstract public class ApiCallBase {
                 final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
                 httpClientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
-                httpClientBuilder.hostnameVerifier(new HostnameVerifier() {
-                    @SuppressLint("BadHostnameVerifier")
-                    @Override
-                    public boolean verify(String hostname, SSLSession session) {
-                        return true;
-                    }
-                });
+                httpClientBuilder.hostnameVerifier(mHostnameVerifier);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -1178,7 +1189,9 @@ abstract public class ApiCallBase {
         httpClientBuilder.writeTimeout(mWriteTimeout, TimeUnit.MILLISECONDS);
         httpClientBuilder.readTimeout(mReadTimeout, TimeUnit.MILLISECONDS);
 
-        builder.setOkHttpClient(httpClientBuilder.build());
+        mOKHttpClient = httpClientBuilder.build();
+
+        builder.setOkHttpClient(mOKHttpClient);
         builder.setTag(objectTag);
         builder.setExecutor(mExecutor);
 

@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion "26.0.2"
+    buildToolsVersion '27.0.1'
 
     defaultConfig {
         minSdkVersion 14
@@ -43,8 +43,8 @@ dependencies {
     //noinspection GradleDynamicVersion
     compile 'com.amitshekhar.android:android-networking:1+'
     compile 'com.amitshekhar.android:jackson-android-networking:1.0.0'
-    compile 'com.android.support:support-annotations:27.0.1'
-    compile 'com.android.support:support-v4:27.0.1'
+    compile 'com.android.support:support-annotations:27.0.2'
+    compile 'com.android.support:support-v4:27.0.2'
     //noinspection GradleDynamicVersion
     compile 'org.cryptonode.jncryptor:jncryptor:1+'
 }

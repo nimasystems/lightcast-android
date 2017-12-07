@@ -15,6 +15,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -22,6 +23,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -121,10 +123,19 @@ public class AppContextUtils {
         return pInfo.packageName;
     }
 
+    public static String getNewUserAgentString(Context context) {
+        return getUserAgentString(context, null, true);
+    }
+
     public static String getUserAgentString(Context context, String appName) {
+        return getUserAgentString(context, appName, false);
+    }
+
+    protected static String getUserAgentString(Context context, String appName, boolean newStyle) {
 
         String userAgent;
         PackageInfo pInfo = null;
+
         try {
             pInfo = context.getPackageManager().getPackageInfo(
                     context.getPackageName(), 0);
@@ -136,12 +147,27 @@ public class AppContextUtils {
             return null;
         }
 
-        // Dreams/[app_version] ([device brand/type/model]; [device os
-        // version]; locale:[current_locale])
-        userAgent = (!StringUtils.isNullOrEmpty(appName) ? appName : pInfo.packageName) + "/" + pInfo.versionName + " ( "
-                + Build.MANUFACTURER + "/" + Build.MODEL + "; Android "
-                + Build.VERSION.RELEASE + ", locale: "
-                + I18n.getLocaleCode(context) + " )";
+        // new style:
+        // [app_bundle]/[app_version] ([device_type]; [device_os]/[device_os_ver]; locale:[current_locale]; display:[display_resolution],[dpi])
+
+        // old style:
+        // [app_name]/[app_version] ([device brand/type/model]; [device os version]; locale:[current_locale])
+
+        if (newStyle) {
+            Point scrS = getScreenSize(context);
+            DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+            int densityDpi = (int) (metrics.density * 160f);
+
+            userAgent = pInfo.packageName + "/" + pInfo.versionName + " (" +
+                    Build.MANUFACTURER + "/" + Build.MODEL + "; android/" + Build.VERSION.RELEASE + "; " +
+                    "locale:" + I18n.getLocaleCode(context) + "; " +
+                    "display:" + String.valueOf(scrS.x) + "x" + String.valueOf(scrS.y) + "," + String.valueOf(densityDpi) + ")";
+        } else {
+            userAgent = (!StringUtils.isNullOrEmpty(appName) ? appName : pInfo.packageName) + "/" + pInfo.versionName + " ( " +
+                    Build.MANUFACTURER + "/" + Build.MODEL + "; Android " +
+                    Build.VERSION.RELEASE + ", locale: " +
+                    I18n.getLocaleCode(context) + " )";
+        }
 
         return userAgent;
     }
