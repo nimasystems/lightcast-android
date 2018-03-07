@@ -137,6 +137,8 @@ abstract public class ApiCallBase {
     private String mHttpAuthUsername;
     private String mHttpAuthPassword;
     private boolean mIsBusy;
+
+    private TimeZone mClientTimezone;
     private TimeZone mServerTimezone;
 
     private String mDeviceGuidHeaderName = DEFAULT_XDG_HEADER_NAME;
@@ -435,6 +437,10 @@ abstract public class ApiCallBase {
         return this;
     }
 
+    public void setClientTimezone(TimeZone timezone) {
+        mClientTimezone = timezone;
+    }
+
     public TimeZone getServerTimezone() {
         return mServerTimezone;
     }
@@ -609,6 +615,13 @@ abstract public class ApiCallBase {
         if (!StringUtils.isNullOrEmpty(mRequestUserAgent)) {
             mRequestHeaders
                     .add(new Header("User-Agent", mRequestUserAgent));
+        }
+
+        // client timezone
+        // DEFAULT_XTZ_HEADER_NAME
+        if (mClientTimezone != null) {
+            mRequestHeaders
+                    .add(new Header(DEFAULT_XTZ_HEADER_NAME, mClientTimezone.getID()));
         }
 
         // access token
@@ -1163,6 +1176,7 @@ abstract public class ApiCallBase {
         }
 
         // SSL trusting for fake / self-generated certificates
+        // TODO: this is still leaking memory here!
         if (trustSSL) {
             logDebug("TRUST SSL enabled");
 
