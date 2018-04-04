@@ -1008,6 +1008,7 @@ abstract public class ApiCallBase {
     private OkHttpClient mOKHttpClient;
 
     @SuppressLint("ObsoleteSdkInt")
+    @SuppressWarnings("unchecked")
     protected boolean executeInternal(boolean synchronous,
                                       String serverHostname, String serverAddress, boolean useSSL) {
 

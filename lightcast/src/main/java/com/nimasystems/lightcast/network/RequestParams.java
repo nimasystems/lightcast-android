@@ -268,6 +268,7 @@ public class RequestParams {
      * @param key   the key name for the param, either existing or new.
      * @param value the value string for the new param.
      */
+    @SuppressWarnings("unchecked")
     public void add(String key, String value) {
         if (key != null && value != null) {
             Object params = urlParamsWithObjects.get(key);

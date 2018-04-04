@@ -5,8 +5,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -15,7 +13,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Point;
-import android.graphics.PointF;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -31,7 +28,6 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import java.io.File;
-import java.util.List;
 
 public class AppContextUtils {
 
@@ -174,7 +170,8 @@ public class AppContextUtils {
 
     public static ComponentName isServiceStarted(Context context,
                                                  String className) {
-        ActivityManager activityManager = (ActivityManager) context
+        // deprecated
+        /*ActivityManager activityManager = (ActivityManager) context
                 .getSystemService(android.content.Context.ACTIVITY_SERVICE);
 
         if (activityManager != null) {
@@ -194,7 +191,7 @@ public class AppContextUtils {
                     return serviceName;
                 }
             }
-        }
+        }*/
 
         return null;
     }

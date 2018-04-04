@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.1'
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         minSdkVersion 14
@@ -28,7 +28,7 @@ android {
         }
     }
 
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '27.0.3'
 }
 
 // include deprecated methods in lint checking
@@ -39,12 +39,12 @@ allprojects {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     //noinspection GradleDynamicVersion
-    compile 'com.amitshekhar.android:android-networking:1+'
-    compile 'com.amitshekhar.android:jackson-android-networking:1.0.0'
-    compile 'com.android.support:support-annotations:27.0.2'
-    compile 'com.android.support:support-v4:27.0.2'
+    implementation 'com.amitshekhar.android:android-networking:1+'
+    implementation 'com.amitshekhar.android:jackson-android-networking:1.0.0'
+    implementation 'com.android.support:support-annotations:27.1.0'
+    implementation 'com.android.support:support-v4:27.1.0'
     //noinspection GradleDynamicVersion
-    compile 'org.cryptonode.jncryptor:jncryptor:1+'
+    implementation 'org.cryptonode.jncryptor:jncryptor:1+'
 }

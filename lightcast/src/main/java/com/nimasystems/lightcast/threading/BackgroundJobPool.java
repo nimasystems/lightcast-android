@@ -53,10 +53,12 @@ public class BackgroundJobPool {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void execute(final List<BackgroundJob> jobs, final BackgroundTasksExecutorListener listener) {
 
         this.executor.submit(new Runnable() {
             @Override
+            @SuppressWarnings("unchecked")
             public void run() {
                 List list = Collections.synchronizedList(new ArrayList());
 

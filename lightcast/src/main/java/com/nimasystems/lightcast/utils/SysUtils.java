@@ -9,7 +9,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Looper;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.nimasystems.lightcast.exceptions.SystemException;
@@ -55,7 +54,8 @@ public class SysUtils {
         String deviceId = null;
 
         try {
-            if (useTelephone) {
+            // deprecated
+            /*if (useTelephone) {
                 TelephonyManager tm = (TelephonyManager) context
                         .getSystemService(Context.TELEPHONY_SERVICE);
                 if (tm != null) {
@@ -70,9 +70,9 @@ public class SysUtils {
                 }
             } else {
                 deviceId = getCustomDeviceID();
-            }
+            }*/
 
-            mDeviceId = deviceId;
+            mDeviceId = getCustomDeviceID();
 
         } catch (Exception e) {
             e.printStackTrace();
