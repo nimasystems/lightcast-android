@@ -1,7 +1,6 @@
 package com.nimasystems.lightcast.threading;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.nimasystems.lightcast.logging.LcLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,7 +13,8 @@ import java.util.concurrent.Executors;
 
 public class BackgroundJobPool {
 
-    private Logger mLogger;
+    //private Logger mLogger;
+    private LcLogger mLogger;
 
     private ExecutorService executor;
 
@@ -31,7 +31,7 @@ public class BackgroundJobPool {
     }
 
     public BackgroundJobPool() {
-        mLogger = LoggerFactory.getLogger(this.getClass());
+        //mLogger = LoggerFactory.getLogger(this.getClass());
         init();
     }
 
@@ -45,7 +45,7 @@ public class BackgroundJobPool {
     }
 
     protected void init() {
-        mLogger = LoggerFactory.getLogger(this.getClass());
+        //mLogger = LoggerFactory.getLogger(this.getClass());
 
         if (this.executor == null) {
             this.executor = Executors
@@ -77,7 +77,9 @@ public class BackgroundJobPool {
                             try {
                                 job.run(executor, execCallback);
                             } catch (Exception e) {
-                                mLogger.error("Error while waiting for thread completion", e);
+                                if (mLogger != null) {
+                                    mLogger.err("Error while waiting for thread completion");
+                                }
                             }
                             return null;
                         }
@@ -87,7 +89,9 @@ public class BackgroundJobPool {
                 try {
                     latch.await();
                 } catch (InterruptedException e) {
-                    mLogger.error("Error while waiting for thread completion", e);
+                    if (mLogger != null) {
+                        mLogger.err("Error while waiting for thread completion");
+                    }
                 }
 
                 if (listener != null) {

@@ -14,6 +14,7 @@ import com.androidnetworking.common.RequestBuilder;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.OkHttpResponseAndJSONObjectRequestListener;
 import com.nimasystems.lightcast.encryption.AESCrypt;
+import com.nimasystems.lightcast.logging.LcLogger;
 import com.nimasystems.lightcast.utils.DebugUtils;
 import com.nimasystems.lightcast.utils.StringUtils;
 
@@ -21,11 +22,7 @@ import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -91,7 +88,9 @@ abstract public class ApiCallBase {
     protected int mReadTimeout = DEFAULT_READ_TIMEOUT;
     protected int mWriteTimeout = DEFAULT_READ_TIMEOUT;
 
-    protected final Logger mLogger = LoggerFactory.getLogger(this.getClass());
+    //protected final Logger mLogger = LoggerFactory.getLogger(this.getClass());
+
+    protected LcLogger mLogger;
 
     protected List<Header> mRequestHeaders;
     protected String mConnectionUrl;
@@ -413,7 +412,7 @@ abstract public class ApiCallBase {
 
     protected void logError(String str) {
         if (mLogger != null) {
-            mLogger.error(mConnectionId + ": " + str);
+            mLogger.err(mConnectionId + ": " + str);
         }
     }
 
@@ -863,12 +862,12 @@ abstract public class ApiCallBase {
     private X509TrustManager mX509TrustManager = new X509TrustManager() {
         @SuppressLint("TrustAllX509TrustManager")
         @Override
-        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
         }
 
         @SuppressLint("TrustAllX509TrustManager")
         @Override
-        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
         }
 
         @Override
@@ -1169,7 +1168,7 @@ abstract public class ApiCallBase {
 
             httpClientBuilder.authenticator(new Authenticator() {
                 @Override
-                public Request authenticate(Route route, Response response) throws IOException {
+                public Request authenticate(@NonNull Route route, @NonNull Response response) {
                     String credential = Credentials.basic(mHttpAuthUsername, mHttpAuthPassword);
                     return response.request().newBuilder().header("Authorization", credential).build();
                 }
@@ -1319,7 +1318,7 @@ abstract public class ApiCallBase {
         return startAsyncCall();
     }
 
-    protected boolean makeCall(boolean synchronous) throws IOException {
+    protected boolean makeCall(boolean synchronous) {
 
         // override synchronous if looper not prepared
         if (Looper.myLooper() == null) {
@@ -1359,7 +1358,11 @@ abstract public class ApiCallBase {
         return mContext;
     }
 
-    public Logger getLogger() {
+    public LcLogger getLogger() {
         return mLogger;
+    }
+
+    public void setLogger(LcLogger logger) {
+        mLogger = logger;
     }
 }
