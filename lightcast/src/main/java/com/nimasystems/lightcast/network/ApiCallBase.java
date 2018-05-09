@@ -676,12 +676,15 @@ abstract public class ApiCallBase {
     }
 
     protected void onConnectionSuccess(Response okHttpResponse, JSONObject response) {
-        mResponseStatusCode = okHttpResponse.code();
-        mResponseHeaders = makeResponseHeaders(okHttpResponse.headers());
-        mResponseBody = okHttpResponse.body();
+        if (okHttpResponse != null) {
+            mResponseStatusCode = okHttpResponse.code();
+            mResponseHeaders = makeResponseHeaders(okHttpResponse.headers());
+            mResponseBody = okHttpResponse.body();
+        }
+
         mResponseJson = response;
         mResponseIsSuccess = true;
-
+        
         logDebug("Connection success (" + mConnectionUrl + "), Status code: "
                 + mResponseStatusCode);
 
