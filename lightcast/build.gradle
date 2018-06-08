@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_COMPILE_SDK_VERSION)
+    buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 27
+        minSdkVersion Integer.parseInt(project.ANDROID_BUILD_MIN_SDK_VERSION)
+        targetSdkVersion Integer.parseInt(project.ANDROID_BUILD_TARGET_SDK_VERSION)
         versionCode 1
         versionName "1.0"
     }
@@ -43,7 +43,7 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.amitshekhar.android:android-networking:1+'
     implementation 'com.amitshekhar.android:jackson-android-networking:1.0.1'
-    implementation 'com.android.support:support-annotations:27.1.1'
+    implementation "com.android.support:support-annotations:$project.ANDROID_SUPPORT_LIBRARY_VERSION"
 
     //implementation 'org.slf4j:slf4j-api:1.7.25'
     //implementation 'com.github.tony19:logback-android:1.1.1-10'
