@@ -51,8 +51,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.Route;
+import okio.Okio;
 
-abstract public class ApiCallBase {
+abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
     public enum RequestType {
 
@@ -680,8 +681,6 @@ abstract public class ApiCallBase {
     protected void handleConnectionError(Response response, ANError error) {
         String errorBody = error != null ? error.getErrorBody() : null;
 
-        mResponseJson = null;
-
         if (errorBody != null) {
             try {
                 mResponseJson = new JSONObject(errorBody);
@@ -694,25 +693,6 @@ abstract public class ApiCallBase {
         mResponseHeaders = makeResponseHeaders(response != null ? response.headers() : null);
         mResponseBody = response != null ? response.body() : null;
         mResponseIsSuccess = false;
-
-        if (mResponseJson == null && mResponseBody != null) {
-            MediaType mt = mResponseBody.contentType();
-
-            if (mt != null) {
-                String mtType = mt.type();
-                String mtSubtype = mt.subtype();
-
-                if (StringUtils.safeEquals(mtType, "application") &&
-                        StringUtils.safeEquals(mtSubtype, "json")) {
-
-                    try {
-                        mResponseJson = new JSONObject(mResponseBody.string());
-                    } catch (Exception e) {
-                        //  nothing here
-                    }
-                }
-            }
-        }
 
         logDebug("Connection failure (" + mConnectionUrl + "), Status code: "
                 + mResponseStatusCode + ", Error: " +
@@ -1209,6 +1189,11 @@ abstract public class ApiCallBase {
             });
         }
 
+        // listen additionally to fetch the body of the response when code is not 200
+        UnauthorisedInterceptor unathInterceptor = new UnauthorisedInterceptor(mContext);
+        unathInterceptor.setListener(this);
+        httpClientBuilder.addInterceptor(unathInterceptor);
+
         // SSL trusting for fake / self-generated certificates
         // TODO: this is still leaking memory here!
         if (trustSSL) {
@@ -1398,5 +1383,10 @@ abstract public class ApiCallBase {
 
     public void setLogger(LcLogger logger) {
         mLogger = logger;
+    }
+
+    @Override
+    public void OnUnauthorizedInterceptorAction(int responseCode, JSONObject responseJSON) {
+        mResponseJson = responseJSON;
     }
 }
