@@ -23,6 +23,7 @@ import org.cryptonode.jncryptor.JNCryptor;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,6 +45,7 @@ import javax.net.ssl.X509TrustManager;
 import okhttp3.Authenticator;
 import okhttp3.Credentials;
 import okhttp3.Headers;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -675,26 +677,8 @@ abstract public class ApiCallBase {
         logDebug("Connection cancel (" + mConnectionUrl + ")");
     }
 
-    protected void onConnectionSuccess(Response okHttpResponse, JSONObject response) {
-        if (okHttpResponse != null) {
-            mResponseStatusCode = okHttpResponse.code();
-            mResponseHeaders = makeResponseHeaders(okHttpResponse.headers());
-            mResponseBody = okHttpResponse.body();
-        }
-
-        mResponseJson = response;
-        mResponseIsSuccess = true;
-        
-        logDebug("Connection success (" + mConnectionUrl + "), Status code: "
-                + mResponseStatusCode);
-
-        doPostOperations(true);
-    }
-
-    protected void onConnectionFailure(ANError anError) {
-        Response response = anError != null ? anError.getResponse() : null;
-
-        String errorBody = anError != null ? anError.getErrorBody() : null;
+    protected void handleConnectionError(Response response, ANError error) {
+        String errorBody = error != null ? error.getErrorBody() : null;
 
         mResponseJson = null;
 
@@ -711,11 +695,58 @@ abstract public class ApiCallBase {
         mResponseBody = response != null ? response.body() : null;
         mResponseIsSuccess = false;
 
+        if (mResponseJson == null && mResponseBody != null) {
+            MediaType mt = mResponseBody.contentType();
+
+            if (mt != null) {
+                String mtType = mt.type();
+                String mtSubtype = mt.subtype();
+
+                if (StringUtils.safeEquals(mtType, "application") &&
+                        StringUtils.safeEquals(mtSubtype, "json")) {
+
+                    try {
+                        mResponseJson = new JSONObject(mResponseBody.string());
+                    } catch (Exception e) {
+                        //  nothing here
+                    }
+                }
+            }
+        }
+
         logDebug("Connection failure (" + mConnectionUrl + "), Status code: "
                 + mResponseStatusCode + ", Error: " +
-                (anError != null ? anError.getErrorBody() : ""));
+                (error != null ? error.getErrorBody() : ""));
+    }
 
-        doPostOperations(false);
+    protected void handleConnectionSuccess(Response response, JSONObject responseBody) {
+        mResponseJson = responseBody;
+
+        logDebug("Connection success (" + mConnectionUrl + "), Status code: "
+                + mResponseStatusCode);
+    }
+
+    protected void onConnectionSuccess(Response response, JSONObject responseBody) {
+        if (response != null) {
+            mResponseStatusCode = response.code();
+            mResponseHeaders = makeResponseHeaders(response.headers());
+            mResponseBody = response.body();
+        }
+
+        mResponseIsSuccess = mResponseStatusCode == 200 || mResponseStatusCode == 304;
+
+        if (mResponseIsSuccess) {
+            handleConnectionSuccess(response, responseBody);
+        } else {
+            handleConnectionError(response, null);
+        }
+
+        doPostOperations(mResponseIsSuccess);
+    }
+
+    protected void onConnectionFailure(ANError error) {
+        Response response = error != null ? error.getResponse() : null;
+        handleConnectionError(response, error);
     }
 
     protected List<Header> makeResponseHeaders(Headers headers) {
