@@ -727,6 +727,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     protected void onConnectionFailure(ANError error) {
         Response response = error != null ? error.getResponse() : null;
         handleConnectionError(response, error);
+
+        doPostOperations(mResponseIsSuccess);
     }
 
     protected List<Header> makeResponseHeaders(Headers headers) {
