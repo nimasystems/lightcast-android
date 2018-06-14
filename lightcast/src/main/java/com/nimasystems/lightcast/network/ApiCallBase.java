@@ -23,7 +23,6 @@ import org.cryptonode.jncryptor.JNCryptor;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -45,13 +44,12 @@ import javax.net.ssl.X509TrustManager;
 import okhttp3.Authenticator;
 import okhttp3.Credentials;
 import okhttp3.Headers;
-import okhttp3.MediaType;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.Route;
-import okio.Okio;
 
 abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
@@ -114,6 +112,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     protected String mDeviceGuid;
     protected String mOldDeviceGuid;
     protected String mLocale;
+
+    protected List<Interceptor> mInterceptors;
 
     protected String errorExtrDataKey = DEFAULT_ERROR_EXTRA_DATA_KEY;
 
@@ -178,11 +178,24 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         objectTag = UUID.randomUUID().toString();
         mRequestHeaders = new ArrayList<>();
         trustAllCerts = new TrustManager[]{mX509TrustManager};
+        mInterceptors = new ArrayList<>();
     }
 
     public ApiCallBase setDelegate(ApiCallTaskDelegate delegate) {
         mDelegate = delegate;
         return this;
+    }
+
+    public void addInterceptor(Interceptor interceptor) {
+        mInterceptors.add(interceptor);
+    }
+
+    public void removeInterceptor(Interceptor interceptor) {
+        mInterceptors.remove(interceptor);
+    }
+
+    public void removeAllInterceptors() {
+        mInterceptors.clear();
     }
 
     public static String encrDid(String deviceGuid, String deviceFriendlyName, String oldDeviceGuid) {
@@ -1195,6 +1208,11 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         UnauthorisedInterceptor unathInterceptor = new UnauthorisedInterceptor(mContext);
         unathInterceptor.setListener(this);
         httpClientBuilder.addInterceptor(unathInterceptor);
+
+        // add other interceptors
+        for (Interceptor i : mInterceptors) {
+            httpClientBuilder.addInterceptor(i);
+        }
 
         // SSL trusting for fake / self-generated certificates
         // TODO: this is still leaking memory here!
