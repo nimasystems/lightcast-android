@@ -194,6 +194,33 @@ public class DateTimeUtils {
         }
     }
 
+    public static Date stringToTime2WithLocalTimezone(String dateString, Locale locale) {
+        if (dateString == null) {
+            return null;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm", locale);
+        format.setTimeZone(TimeZone.getDefault());
+
+        try {
+            return format.parse(dateString);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
+    public static Date stringToTime2(String dateString, Locale locale) {
+        if (dateString == null) {
+            return null;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm", locale);
+
+        try {
+            return format.parse(dateString);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
     public static Date stringToTime(String dateString, Locale locale) {
         if (dateString == null) {
             return null;
