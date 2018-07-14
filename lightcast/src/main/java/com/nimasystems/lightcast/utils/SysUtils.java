@@ -87,6 +87,33 @@ public class SysUtils {
         return deviceId;
     }
 
+    /*public static boolean isRemoteProcess(Context context) {
+        long myPid = (long) Process.myPid();
+
+        String packageNameD = AppContextUtils.getPackageName(context) + ":remote";
+
+        ActivityManager manager = ((ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE));
+
+        if (manager == null) {
+            return false;
+        }
+
+        List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = manager.getRunningAppProcesses();
+
+        boolean ret = false;
+
+        if (runningAppProcesses != null && runningAppProcesses.size() != 0) {
+            for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcesses) {
+                if (((long) runningAppProcessInfo.pid) == myPid && packageNameD.equals(runningAppProcessInfo.processName)) {
+                    ret = true;
+                    break;
+                }
+            }
+        }
+
+        return ret;
+    }*/
+
     public static String getPackageVersion(Context context) {
         String clientApiVersion = null;
         try {

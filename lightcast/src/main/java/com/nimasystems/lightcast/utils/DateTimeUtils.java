@@ -78,6 +78,16 @@ public class DateTimeUtils {
         }
     }
 
+    public static String millisecondsToDateStr(long milliseconds) {
+        return millisecondsToDateStr(milliseconds, FORMAT_ISO_DATETIME);
+    }
+
+    public static String millisecondsToDateStr(long milliseconds, String format) {
+        Date date = new Date(milliseconds);
+        SimpleDateFormat formatter = new SimpleDateFormat(format, Locale.US);
+        return formatter.format(date);
+    }
+
     public static String dateTimeToLocaleStringFormat(Context context, Date date) {
         if (date == null || context == null) {
             return null;
