@@ -204,6 +204,20 @@ public class DateTimeUtils {
         }
     }
 
+    public static Date stringToTime2(String dateString, Locale locale, TimeZone tz) {
+        if (dateString == null) {
+            return null;
+        }
+        SimpleDateFormat format = new SimpleDateFormat("HH:mm", locale);
+        format.setTimeZone(tz);
+
+        try {
+            return format.parse(dateString);
+        } catch (ParseException e) {
+            return null;
+        }
+    }
+
     public static Date stringToTime2WithLocalTimezone(String dateString, Locale locale) {
         if (dateString == null) {
             return null;
