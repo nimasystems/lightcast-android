@@ -16,7 +16,7 @@ public class SocialNetworks {
                 + packageName;
     }
 
-    public static String getFacebookKeyHash(Context context) {
+    /*public static String getFacebookKeyHash(Context context) {
         String keyhash = null;
         try {
             @SuppressLint("PackageManagerGetSignatures") PackageInfo info = context.getPackageManager().getPackageInfo(
@@ -31,6 +31,5 @@ public class SocialNetworks {
             e.printStackTrace();
         }
         return keyhash;
-    }
-
+    }*/
 }

@@ -46,20 +46,6 @@ public class AppContextUtils {
                 .getApplicationLabel(lApplicationInfo) : "");
     }
 
-    /**
-     * @return Application's version code from the {@code PackageManager}.
-     */
-    public static int getApplicationVersion(Context context) {
-        try {
-            PackageInfo packageInfo = context.getPackageManager()
-                    .getPackageInfo(context.getPackageName(), 0);
-            return packageInfo.versionCode;
-        } catch (NameNotFoundException e) {
-            // should never happen
-            throw new RuntimeException("Could not get package name: " + e);
-        }
-    }
-
     public static int getStatusBarHeight(Context context) {
         int result = 0;
         int resourceId = context.getResources().getIdentifier(
@@ -220,10 +206,18 @@ public class AppContextUtils {
     }
 
     public static boolean isOnline(Context context) {
-        ConnectivityManager cm = (ConnectivityManager) context
-                .getSystemService(Context.CONNECTIVITY_SERVICE);
-        @SuppressLint("MissingPermission") NetworkInfo netInfo = (cm != null ? cm.getActiveNetworkInfo() : null);
-        return netInfo != null && netInfo.isConnectedOrConnecting();
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        boolean isConnected = true;
+
+        if (cm != null) {
+            @SuppressLint("MissingPermission") NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            isConnected = activeNetwork != null &&
+                    activeNetwork.isConnectedOrConnecting();
+        }
+
+        return isConnected;
     }
 
     public static boolean openExternalUrlActivity(Context context, String url) {
