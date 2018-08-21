@@ -1115,9 +1115,11 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         RequestBuilder builder;
 
         RequestParams rparams = getRequestParams();
+        rparams = rparams != null ? rparams : new RequestParams();
+
         HashMap<String, String> preparedRequestParams = preparedParams(rparams);
 
-        ConcurrentHashMap<String, RequestParams.FileWrapper> fparams = rparams != null ? rparams.getFileParams() : null;
+        ConcurrentHashMap<String, RequestParams.FileWrapper> fparams = rparams.getFileParams();
         boolean requestIsMultipart = fparams != null && fparams.size() > 0;
 
         if (requestIsMultipart) {
