@@ -140,15 +140,12 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     private String mHttpAuthPassword;
     private boolean mIsBusy;
 
-    private TimeZone mClientTimezone;
-    private TimeZone mServerTimezone;
+    protected TimeZone mClientTimezone;
+    protected TimeZone mServerTimezone;
 
     private String mDeviceGuidHeaderName = DEFAULT_XDG_HEADER_NAME;
-
     private String mUserAccessTokenHeaderName = DEFAULT_XAT_HEADER_NAME;
-
     private String mTimezoneHeaderName = DEFAULT_XTZ_HEADER_NAME;
-
     private String mAppVersionHeaderName = DEFAULT_X_CLIENT_API_LEVEL_HEADER_NAME;
 
     public String getObjectTag() {
