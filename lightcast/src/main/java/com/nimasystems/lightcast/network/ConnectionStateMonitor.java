@@ -31,7 +31,11 @@ public class ConnectionStateMonitor {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     connected = connectivityManager.bindProcessToNetwork(network);
                 } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    connected = ConnectivityManager.setProcessDefaultNetwork(network);
+                    try {
+                        connected = ConnectivityManager.setProcessDefaultNetwork(network);
+                    } catch (Exception e) {
+                        //
+                    }
                 }
 
                 if (mMonitor != null && mMonitor.hasNetwork != connected) {
