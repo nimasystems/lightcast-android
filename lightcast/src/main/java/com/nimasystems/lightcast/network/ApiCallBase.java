@@ -594,6 +594,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
     protected Header[] getAllHeaders() {
         List<Header> headers = prepareRequestHeaders();
+        //noinspection ToArrayCallWithZeroLengthArrayArgument
         return headers.toArray(new Header[headers.size()]);
     }
 
@@ -922,7 +923,6 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                 mServerError = parseResponseForError(errorExtrDataKey, mResponseJson);
 
                 if (mServerError != null) {
-                    isSuccessful = false;
                     mLastErrorCode = mServerError.code;
                     mLastErrorMessage = mServerError.message;
                 } else {
