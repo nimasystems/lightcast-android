@@ -15,3 +15,26 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-keep class ch.qos.** { *; }
+-keep class org.slf4j.** { *; }
+-keepattributes *Annotation*
+-dontwarn ch.qos.logback.core.net.*
+
+-dontwarn ch.qos.logback.core.*
+-dontwarn ch.qos.logback.core.**
+-dontwarn javax.naming.Context
+-dontwarn javax.naming.InitialContext
+-dontwarn javax.mail.**
+
+# Proguard configuration for Jackson 2.x (fasterxml package instead of codehaus package)
+-keep class com.fasterxml.jackson.databind.ObjectMapper {
+    public <methods>;
+    protected <methods>;
+}
+-keep class com.fasterxml.jackson.databind.ObjectWriter {
+    public ** writeValueAsString(**);
+}
+-keepnames class com.fasterxml.jackson.** { *; }
+-dontwarn com.fasterxml.jackson.databind.**
+-dontwarn javax.mail.**
