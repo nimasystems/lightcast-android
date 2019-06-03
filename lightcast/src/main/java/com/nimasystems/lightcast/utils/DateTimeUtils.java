@@ -17,11 +17,20 @@ public class DateTimeUtils {
     public static final String FORMAT_ISO_DATETIME = "yyyy-MM-dd HH:mm:ss";
     public static final String FORMAT_ISO_DATE = "yyyy-MM-dd";
     public static final String FORMAT_ISO_TIME = "HH:mm:ss";
+    public static final String FORMAT_SHORT_TIME_TIME = "HH:mm";
 
     public static final String FORMAT_SQL_LONG = "yyyy-MM-dd kk:mm:ss";
 
     public static String dateToSQLStringFormat(Date date) {
         return dateToString(date, FORMAT_SQL_LONG);
+    }
+
+    public static String dateToShortSQLStringFormat(Date date) {
+        return dateToString(date, FORMAT_ISO_DATE);
+    }
+
+    public static String dateToHourMinutesStringFormat(Date date) {
+        return dateToString(date, FORMAT_SHORT_TIME_TIME);
     }
 
     public static Date addDays(Date date, int days) {

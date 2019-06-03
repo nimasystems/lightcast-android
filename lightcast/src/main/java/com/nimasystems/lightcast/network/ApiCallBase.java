@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+
 import androidx.annotation.NonNull;
 
 import com.androidnetworking.AndroidNetworking;
@@ -20,6 +21,7 @@ import com.nimasystems.lightcast.utils.StringUtils;
 
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -1018,7 +1020,11 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                     v = ((Boolean) val) ? "1" : "";
                 } else if (val instanceof Number) {
                     v = String.valueOf(val);
-                    v = v != null && v.equals("0") ? "" : v;
+                    v = v.equals("0") ? "" : v;
+                } else if (val instanceof HashMap) {
+                    v = new JSONObject((HashMap) val).toString();
+                } else if (val instanceof List) {
+                    v = new JSONArray((List) val).toString();
                 }
 
                 if (!StringUtils.isNullOrEmpty(v)) {

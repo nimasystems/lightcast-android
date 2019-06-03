@@ -2,8 +2,6 @@ package com.nimasystems.lightcast.threading;
 
 import com.nimasystems.lightcast.logging.LcLogger;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -53,15 +51,11 @@ public class BackgroundJobPool {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void execute(final List<BackgroundJob> jobs, final BackgroundTasksExecutorListener listener) {
 
         this.executor.submit(new Runnable() {
             @Override
-            @SuppressWarnings("unchecked")
             public void run() {
-                List list = Collections.synchronizedList(new ArrayList());
-
                 final CountDownLatch latch = new CountDownLatch(jobs.size());
 
                 final BackgroundTaskExecutionCallback execCallback = new BackgroundTaskExecutionCallback() {
