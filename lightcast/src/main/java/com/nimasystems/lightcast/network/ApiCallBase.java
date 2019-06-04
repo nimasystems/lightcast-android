@@ -678,17 +678,17 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     }
 
     protected void onConnectionStart() {
-        logDebug("Connection started (" + mConnectionUrl + ")");
+        log("API: " + mConnectionUrl);
     }
 
     protected void onConnectionFinish() {
-        logDebug("Connection finish (" + mConnectionUrl + ")");
+        //logDebug("Connection finish (" + mConnectionUrl + ")");
 
         mOKHttpClient = null;
     }
 
     protected void onConnectionCancel() {
-        logDebug("Connection cancel (" + mConnectionUrl + ")");
+        //logDebug("Connection cancel (" + mConnectionUrl + ")");
     }
 
     protected void handleConnectionError(Response response, ANError error) {
@@ -707,7 +707,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         mResponseBody = response != null ? response.body() : null;
         mResponseIsSuccess = false;
 
-        logDebug("Connection failure (" + mConnectionUrl + "), Status code: "
+        logError("Connection failure (" + mConnectionUrl + "), Status code: "
                 + mResponseStatusCode + ", Error: " +
                 (error != null ? error.getErrorBody() : ""));
     }
@@ -715,8 +715,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     protected void handleConnectionSuccess(Response response, JSONObject responseBody) {
         mResponseJson = responseBody;
 
-        logDebug("Connection success (" + mConnectionUrl + "), Status code: "
-                + mResponseStatusCode);
+        /*logDebug("Connection success (" + mConnectionUrl + "), Status code: "
+                + mResponseStatusCode);*/
     }
 
     protected void onConnectionSuccess(Response response, JSONObject responseBody) {
@@ -919,7 +919,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         try {
             if (mResponseJson != null) {
-                logDebug("HTTP Response: " + mResponseJson.toString());
+                // logDebug("HTTP Response: " + mResponseJson.toString());
 
                 // parse for a server error
                 mServerError = parseResponseForError(errorExtrDataKey, mResponseJson);
@@ -1106,7 +1106,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         mConnectionUrl = getConnectionUrl(useSSL, serverAddress,
                 serverHostname, queryPath, null);
 
-        logDebug("URL: " + mConnectionUrl);
+        //logDebug("URL: " + mConnectionUrl);
 
         String charset = getRequestCharset();
 
@@ -1173,13 +1173,13 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         Header[] allHeaders = getAllHeaders();
 
-        if (allHeaders != null) {
+        /*if (allHeaders != null) {
             logDebug("Prepared headers");
 
             for (Header h : allHeaders) {
                 logDebug(h.getKey() + ": " + h.getValue());
             }
-        }
+        }*/
 
         if (allHeaders != null) {
             for (Header header : allHeaders) {
@@ -1198,7 +1198,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         // http auth
         if (mHttpAuthEnabled) {
-            logDebug("HTTP AUTH ENABLED");
+            //logDebug("HTTP AUTH ENABLED");
 
             httpClientBuilder.authenticator(new Authenticator() {
                 @Override
@@ -1222,7 +1222,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         // SSL trusting for fake / self-generated certificates
         // TODO: this is still leaking memory here!
         if (trustSSL) {
-            logDebug("TRUST SSL enabled");
+            //logDebug("TRUST SSL enabled");
 
             // Create a trust manager that does not validate certificate chains
             // Install the all-trusting trust manager
