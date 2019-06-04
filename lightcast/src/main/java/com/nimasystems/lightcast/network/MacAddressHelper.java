@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class MacAddressHelper {
      */
     public static byte[] getUTF8Bytes(String str) {
         try {
-            return str.getBytes("UTF-8");
+            return str.getBytes(StandardCharsets.UTF_8);
         } catch (Exception ex) {
             return null;
         }
@@ -38,8 +39,8 @@ public class MacAddressHelper {
      */
     public static String loadFileAsString(String filename) throws java.io.IOException {
         final int BUFLEN = 1024;
-        BufferedInputStream is = new BufferedInputStream(new FileInputStream(filename), BUFLEN);
-        try {
+
+        try (BufferedInputStream is = new BufferedInputStream(new FileInputStream(filename), BUFLEN)) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream(BUFLEN);
             byte[] bytes = new byte[BUFLEN];
             boolean isUTF8 = false;
@@ -53,12 +54,7 @@ public class MacAddressHelper {
                 }
                 count += read;
             }
-            return isUTF8 ? new String(baos.toByteArray(), "UTF-8") : new String(baos.toByteArray());
-        } finally {
-            try {
-                is.close();
-            } catch (Exception ignored) {
-            }
+            return isUTF8 ? new String(baos.toByteArray(), StandardCharsets.UTF_8) : new String(baos.toByteArray());
         }
     }
 

@@ -25,6 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -84,7 +85,6 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
     public static final int DEFAULT_CONNECT_TIMEOUT = 10000;
     public static final int DEFAULT_READ_TIMEOUT = 30000;
-    public static final int DEFAULT_WRITE_TIMEOUT = 10000;
     public static final int DEFAULT_MAX_RETRIES_TIMEOUT = 20000;
 
     protected int mConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
@@ -238,7 +238,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         try {
             byte[] ct = cryptor.encryptData(plaintext, encrKey.toCharArray());
-            tkr = new String(android.util.Base64.encode(ct, android.util.Base64.DEFAULT), "UTF-8");
+            tkr = new String(android.util.Base64.encode(ct, android.util.Base64.DEFAULT), StandardCharsets.UTF_8);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1039,7 +1039,6 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     private OkHttpClient mOKHttpClient;
 
     @SuppressLint("ObsoleteSdkInt")
-    @SuppressWarnings("unchecked")
     protected boolean executeInternal(boolean synchronous,
                                       String serverHostname, String serverAddress, boolean useSSL) {
 
@@ -1137,7 +1136,11 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                 bb.addMultipartParameter(preparedRequestParams);
 
                 for (String key : fparams.keySet()) {
-                    bb.addMultipartFile(key, fparams.get(key).file);
+                    RequestParams.FileWrapper obj = fparams.get(key);
+
+                    if (obj != null) {
+                        bb.addMultipartFile(key, obj.file);
+                    }
                 }
             }
 
@@ -1220,7 +1223,6 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         }
 
         // SSL trusting for fake / self-generated certificates
-        // TODO: this is still leaking memory here!
         if (trustSSL) {
             //logDebug("TRUST SSL enabled");
 

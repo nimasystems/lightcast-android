@@ -1,5 +1,7 @@
 package com.nimasystems.lightcast.network;
 
+import androidx.annotation.NonNull;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -314,6 +316,7 @@ public class RequestParams {
                 fileArrayParams.get(key) != null;
     }
 
+    @NonNull
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
