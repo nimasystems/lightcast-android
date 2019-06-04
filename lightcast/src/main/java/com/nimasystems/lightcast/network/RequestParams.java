@@ -236,7 +236,18 @@ public class RequestParams {
      */
     public void put(String key, Object value) {
         if (key != null && value != null) {
-            urlParamsWithObjects.put(key, value);
+
+            if (value instanceof String) {
+                urlParams.put(key, (String) value);
+            } else if (value instanceof Double) {
+                urlParams.put(key, String.valueOf(value));
+            } else if (value instanceof Integer) {
+                urlParams.put(key, String.valueOf(value));
+            } else if (value instanceof Boolean) {
+                urlParams.put(key, (Boolean) value ? "1" : "0");
+            } else {
+                urlParamsWithObjects.put(key, value);
+            }
         }
     }
 

@@ -508,6 +508,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         this.mAppVersionHeaderName = appVersionHeaderName;
     }
 
+    @NonNull
     protected RequestType getRequestType() {
         return RequestType.Get;
     }
@@ -678,7 +679,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     }
 
     protected void onConnectionStart() {
-        log("API: " + mConnectionUrl);
+        log(getRequestType().toString().toUpperCase() + ": " + mConnectionUrl);
     }
 
     protected void onConnectionFinish() {
@@ -740,6 +741,12 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     protected void onConnectionFailure(ANError error) {
         Response response = error != null ? error.getResponse() : null;
         handleConnectionError(response, error);
+
+        if (error != null) {
+            logError("\n\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\n\n" +
+                    "SR (" + error.getErrorDetail() + "): " + error.getMessage() +
+                    "\n\n\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\n");
+        }
 
         doPostOperations(mResponseIsSuccess);
     }
