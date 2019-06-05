@@ -1,7 +1,11 @@
 package com.nimasystems.lightcast.threading;
 
-import com.nimasystems.lightcast.logging.LcLogger;
+import androidx.annotation.NonNull;
 
+import com.nimasystems.lightcast.logging.LcLogger;
+import com.nimasystems.lightcast.network.OperationResponse;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -17,11 +21,11 @@ public class BackgroundJobPool {
     private ExecutorService executor;
 
     public interface BackgroundTasksExecutorListener {
-        void OnExecutionComplete(boolean successful);
+        void OnExecutionComplete(boolean success, @NonNull List<OperationResponse> jobResponses);
     }
 
     public interface BackgroundTaskExecutionCallback {
-        void signalCompleted();
+        void signalCompleted(OperationResponse taskResponse);
     }
 
     public interface BackgroundJob {
@@ -58,9 +62,16 @@ public class BackgroundJobPool {
             public void run() {
                 final CountDownLatch latch = new CountDownLatch(jobs.size());
 
+                final List<OperationResponse> responses = new ArrayList<>();
+
                 final BackgroundTaskExecutionCallback execCallback = new BackgroundTaskExecutionCallback() {
                     @Override
-                    public void signalCompleted() {
+                    public void signalCompleted(OperationResponse taskResponse) {
+
+                        if (taskResponse != null) {
+                            responses.add(taskResponse);
+                        }
+
                         latch.countDown();
                     }
                 };
@@ -89,7 +100,7 @@ public class BackgroundJobPool {
                 }
 
                 if (listener != null) {
-                    listener.OnExecutionComplete(true);
+                    listener.OnExecutionComplete(true, responses);
                 }
             }
         });

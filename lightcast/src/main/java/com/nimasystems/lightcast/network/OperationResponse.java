@@ -7,6 +7,7 @@ package com.nimasystems.lightcast.network;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -14,17 +15,37 @@ import java.util.List;
 public class OperationResponse {
     private int code;
     private String message;
+    private boolean isSuccessful;
     private HashMap<String, Object> data;
     private ApiServerErrorModel serverError;
 
-    public OperationResponse(HashMap<String, Object> data) {
-        this.data = data;
+    private int fetchedDataCount;
+    private List<?> fetchedData;
+
+    public OperationResponse(final Object fetchedDataItem) {
+        this.fetchedData = new ArrayList<Object>() {{
+            add(fetchedDataItem);
+        }};
+        this.fetchedDataCount = 1;
+        isSuccessful = true;
     }
 
-    public OperationResponse(int code, String message, ApiServerErrorModel serverError) {
+    public OperationResponse(final List<?> fetchedData, int fetchedDataCount) {
+        this.fetchedData = fetchedData;
+        this.fetchedDataCount = fetchedDataCount;
+        isSuccessful = true;
+    }
+
+    public OperationResponse(final HashMap<String, Object> data) {
+        this.data = data;
+        isSuccessful = true;
+    }
+
+    public OperationResponse(int code, final String message, final ApiServerErrorModel serverError) {
         this.code = code;
         this.message = message;
         this.serverError = serverError;
+        isSuccessful = false;
     }
 
     public int getCode() {
@@ -79,5 +100,17 @@ public class OperationResponse {
     public List<HashMap<String, Object>> getMapList(@NonNull String key) {
         //noinspection unchecked
         return data != null ? (List<HashMap<String, Object>>) data.get(key) : null;
+    }
+
+    public int getFetchedDataCount() {
+        return fetchedDataCount;
+    }
+
+    public List<?> getFetchedData() {
+        return fetchedData;
+    }
+
+    public boolean isSuccessful() {
+        return isSuccessful;
     }
 }
