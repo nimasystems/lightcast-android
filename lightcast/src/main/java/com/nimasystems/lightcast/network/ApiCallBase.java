@@ -679,7 +679,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     }
 
     protected void onConnectionStart() {
-        log(getRequestType().toString().toUpperCase() + ": " + mConnectionUrl);
+        //log(getRequestType().toString().toUpperCase() + ": " + mConnectionUrl);
     }
 
     protected void onConnectionFinish() {
@@ -710,7 +710,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         logError("Connection failure (" + mConnectionUrl + "), Status code: "
                 + mResponseStatusCode + ", Error: " +
-                (error != null ? error.getErrorBody() : ""));
+                (error != null ? error.getErrorBody() : (response != null ? response.message() : "")));
     }
 
     protected void handleConnectionSuccess(Response response, JSONObject responseBody) {
@@ -926,7 +926,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         try {
             if (mResponseJson != null) {
-                // logDebug("HTTP Response: " + mResponseJson.toString());
+                logDebug("HTTP Response: " + mResponseJson.toString());
 
                 // parse for a server error
                 mServerError = parseResponseForError(errorExtrDataKey, mResponseJson);
@@ -1104,7 +1104,6 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         mServerError = null;
 
         RequestType rt = getRequestType();
-        rt = rt == null ? RequestType.Get : rt;
 
         String queryPath = getRequestPreparedQueryPath();
 
@@ -1130,6 +1129,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         rparams = rparams != null ? rparams : new RequestParams();
 
         HashMap<String, String> preparedRequestParams = preparedParams(rparams);
+
+        log(getRequestType().toString().toUpperCase() + " " + mConnectionUrl + ": " + preparedRequestParams);
 
         ConcurrentHashMap<String, RequestParams.FileWrapper> fparams = rparams.getFileParams();
         boolean requestIsMultipart = fparams != null && fparams.size() > 0;
@@ -1284,8 +1285,11 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             try {
                 ANResponse response = request.executeForJSONObject();
 
-                if (response == null) {
-                    onConnectionFailure(null);
+                int responseCode = response.getOkHttpResponse().code();
+                boolean success = responseCode == 200 || responseCode == 304;
+
+                if (!success) {
+                    onConnectionFailure(response.getError());
                 } else {
                     onConnectionSuccess(response.getOkHttpResponse(), (JSONObject) response.getResult());
                 }
