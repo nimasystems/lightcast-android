@@ -295,6 +295,31 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                         }
 
                         err.validationErrors = vErrs;
+                    } else {
+                        // second kind of errors
+                        JSONArray vJErrs2 = objError
+                                .optJSONArray("validation_failures");
+
+                        if (vJErrs2 != null) {
+                            ArrayList<ApiServerValidationError> vErrs = new ArrayList<>();
+                            ApiServerValidationError verr;
+
+                            for (int i = 0; i <= vJErrs2.length() - 1; i++) {
+                                JSONObject jobj = vJErrs2.optJSONObject(i);
+
+                                if (jobj != null) {
+                                    verr = new ApiServerValidationError();
+                                    verr.fieldName = jobj.optString("name");
+                                    verr.message = jobj.optString("message");
+
+                                    if (!StringUtils.isNullOrEmpty(verr.fieldName)) {
+                                        vErrs.add(verr);
+                                    }
+                                }
+                            }
+
+                            err.validationErrors = vErrs;
+                        }
                     }
 
                     return err;
@@ -1285,13 +1310,18 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             try {
                 ANResponse response = request.executeForJSONObject();
 
-                int responseCode = response.getOkHttpResponse().code();
-                boolean success = responseCode == 200 || responseCode == 304;
+                Response r = response.getOkHttpResponse();
+                boolean success;
 
-                if (!success) {
-                    onConnectionFailure(response.getError());
-                } else {
-                    onConnectionSuccess(response.getOkHttpResponse(), (JSONObject) response.getResult());
+                if (r != null) {
+                    int responseCode = r.code();
+                    success = responseCode == 200 || responseCode == 304;
+
+                    if (!success) {
+                        onConnectionFailure(response.getError());
+                    } else {
+                        onConnectionSuccess(response.getOkHttpResponse(), (JSONObject) response.getResult());
+                    }
                 }
 
             } catch (Exception e) {
