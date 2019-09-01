@@ -41,7 +41,7 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.amitshekhar.android:android-networking:1.0.2'
     implementation 'com.amitshekhar.android:jackson-android-networking:1.0.1'
-    implementation "androidx.annotation:annotation:1.0.2"
+    implementation "androidx.annotation:annotation:1.1.0"
 
     //implementation 'org.slf4j:slf4j-api:1.7.25'
     //implementation 'com.github.tony19:logback-android:1.1.1-10'

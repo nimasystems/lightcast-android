@@ -16,7 +16,6 @@ import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.OkHttpResponseAndJSONObjectRequestListener;
 import com.nimasystems.lightcast.encryption.AESCrypt;
 import com.nimasystems.lightcast.logging.LcLogger;
-import com.nimasystems.lightcast.utils.DebugUtils;
 import com.nimasystems.lightcast.utils.StringUtils;
 
 import org.cryptonode.jncryptor.AES256JNCryptor;
@@ -107,6 +106,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     protected String mAcceptedMimetype = DEFAULT_ACCEPTED_MIMETYPE;
     protected int mClientAPILevel;
     protected String mServerHostname;
+    protected Integer mServerPort;
     protected String mServerAddress;
     protected String mQueryPathPrefix;
     protected String mAccessToken;
@@ -540,6 +540,11 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
     public ApiCallBase setAccessToken(String accessToken) {
         mAccessToken = accessToken;
+        return this;
+    }
+
+    public ApiCallBase setServerPort(Integer port) {
+        mServerPort = port;
         return this;
     }
 
@@ -993,10 +998,10 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     }
 
     protected String getConnectionUrl(boolean useSSL, String serverAddress,
-                                      String serverHostname, String queryPath, String requestQuery) {
+                                      String serverHostname, Integer serverPort, String queryPath, String requestQuery) {
         return (useSSL ? "https://" : "http://")
-                + (!StringUtils.isNullOrEmpty(serverAddress) ? serverAddress
-                : serverHostname)
+                + (!StringUtils.isNullOrEmpty(serverAddress) ? serverAddress : serverHostname)
+                + (serverPort != null && serverPort > 0 ? ":" + serverPort : "")
                 + (!StringUtils.isNullOrEmpty(queryPath) ? queryPath : "")
                 + (!StringUtils.isNullOrEmpty(requestQuery) ? "?"
                 + requestQuery : "");
@@ -1016,6 +1021,10 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
     protected String filterServerAddress(String serverAddress) {
         return serverAddress;
+    }
+
+    protected Integer filterServerPort(Integer serverPort) {
+        return serverPort;
     }
 
     protected boolean filterUseSSL(boolean useSSL) {
@@ -1072,11 +1081,12 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
     @SuppressLint("ObsoleteSdkInt")
     protected boolean executeInternal(boolean synchronous,
-                                      String serverHostname, String serverAddress, boolean useSSL) {
+                                      String serverHostname, String serverAddress, Integer serverPort,
+                                      boolean useSSL) {
 
         if (!verifyCallParams()) {
             if (mDebug) {
-                DebugUtils.ass(false, "call params verification failed");
+                logError("call params verification failed");
             }
             return false;
         }
@@ -1089,12 +1099,13 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         beforeExecute();
 
         serverHostname = filterServerHostname(serverHostname);
+        serverPort = filterServerPort(serverPort);
         serverAddress = filterServerAddress(serverAddress);
         useSSL = filterUseSSL(useSSL);
 
         if (StringUtils.isNullOrEmpty(serverHostname)) {
             if (mDebug) {
-                DebugUtils.ass(false, "invalid hostname");
+                logError("invalid hostname");
             }
             return false;
         }
@@ -1106,14 +1117,14 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         if (!initialize()) {
             if (mDebug) {
-                DebugUtils.ass(false, "initialize failed");
+                logError("initialize failed");
             }
             return false;
         }
 
         if (!validateRequest()) {
             if (mDebug) {
-                DebugUtils.ass(false, "validate request failed");
+                logError("validate request failed");
             }
             return false;
         }
@@ -1134,7 +1145,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         // prepare the url
         mConnectionUrl = getConnectionUrl(useSSL, serverAddress,
-                serverHostname, queryPath, null);
+                serverHostname, serverPort, queryPath, null);
 
         //logDebug("URL: " + mConnectionUrl);
 
@@ -1412,7 +1423,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             synchronous = true;
         }
 
-        return executeInternal(synchronous, mServerHostname, mServerAddress, mUseSSL);
+        return executeInternal(synchronous, mServerHostname, mServerAddress, mServerPort, mUseSSL);
     }
 
     public boolean getIsCancelled() {
