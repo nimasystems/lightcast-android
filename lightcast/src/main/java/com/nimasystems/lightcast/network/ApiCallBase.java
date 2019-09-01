@@ -1046,7 +1046,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             for (String key : p1.keySet()) {
                 String val = p1.get(key);
 
-                if (val != null && !StringUtils.isNullOrEmpty(val) && !val.equals("0")) {
+                if (val != null && !StringUtils.isNullOrEmpty(val) /*&& !val.equals("0")*/) {
                     ret.put(key, val);
                 }
             }
@@ -1057,12 +1057,12 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                 Object val = p2.get(key);
                 String v = "";
 
-                if (val instanceof Boolean) {
+                /*if (val instanceof Boolean) {
                     v = ((Boolean) val) ? "1" : "";
                 } else if (val instanceof Number) {
                     v = String.valueOf(val);
                     v = v.equals("0") ? "" : v;
-                } else if (val instanceof HashMap) {
+                } else*/ if (val instanceof HashMap) {
                     v = new JSONObject((HashMap) val).toString();
                 } else if (val instanceof List) {
                     v = new JSONArray((List) val).toString();
