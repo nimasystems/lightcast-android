@@ -24,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -740,7 +741,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         logError("Connection failure (" + mConnectionUrl + "), Status code: "
                 + mResponseStatusCode + ", Error: " +
-                (error != null ? error.getErrorBody() : (response != null ? response.message() : "")));
+                (error != null ? error.getErrorBody() : (response != null ? response.message() : ""))
+        );
     }
 
     protected void handleConnectionSuccess(Response response, JSONObject responseBody) {
@@ -757,7 +759,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             mResponseBody = response.body();
         }
 
-        mResponseIsSuccess = mResponseStatusCode == 200 || mResponseStatusCode == 304;
+        mResponseIsSuccess = (mResponseStatusCode == 200 || mResponseStatusCode == 304) ||
+                responseBody == null;
 
         if (mResponseIsSuccess) {
             handleConnectionSuccess(response, responseBody);
@@ -768,13 +771,15 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         doPostOperations(mResponseIsSuccess);
     }
 
-    protected void onConnectionFailure(ANError error) {
-        Response response = error != null ? error.getResponse() : null;
-        handleConnectionError(response, error);
+    protected void onConnectionFailure(Response response, ANError error) {
+        Response response2 = error != null ? error.getResponse() : null;
+        response2 = response2 != null ? response2 : response;
+
+        handleConnectionError(response2, error);
 
         if (error != null) {
             logError("\n\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\n\n" +
-                    "SR (" + error.getErrorDetail() + "): " + error.getMessage() +
+                    "SR (" + error.getErrorDetail() + "): " + error.getMessage() + "\n\n" +
                     "\n\n\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\n");
         }
 
@@ -1062,7 +1067,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                 } else if (val instanceof Number) {
                     v = String.valueOf(val);
                     v = v.equals("0") ? "" : v;
-                } else*/ if (val instanceof HashMap) {
+                } else*/
+                if (val instanceof HashMap) {
                     v = new JSONObject((HashMap) val).toString();
                 } else if (val instanceof List) {
                     v = new JSONArray((List) val).toString();
@@ -1266,6 +1272,11 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             httpClientBuilder.addInterceptor(i);
         }
 
+        if (this.mDebug) {
+            // custom interceptor for prefetching a small part of the respnse (for error checking)
+            httpClientBuilder.addInterceptor(pec);
+        }
+
         // SSL trusting for fake / self-generated certificates
         if (trustSSL) {
             //logDebug("TRUST SSL enabled");
@@ -1326,18 +1337,19 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
                 if (r != null) {
                     int responseCode = r.code();
-                    success = responseCode == 200 || responseCode == 304;
+                    success = (responseCode == 200 || responseCode == 304) &&
+                            response.getError() == null;
 
                     if (!success) {
-                        onConnectionFailure(response.getError());
+                        onConnectionFailure(r, response.getError());
                     } else {
-                        onConnectionSuccess(response.getOkHttpResponse(), (JSONObject) response.getResult());
+                        onConnectionSuccess(r, (JSONObject) response.getResult());
                     }
                 }
 
             } catch (Exception e) {
                 e.printStackTrace();
-                onConnectionFailure(null);
+                onConnectionFailure(null, null);
             } finally {
                 onConnectionFinish();
             }
@@ -1355,7 +1367,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                 @Override
                 public void onError(ANError anError) {
                     try {
-                        onConnectionFailure(anError);
+                        onConnectionFailure(null, anError);
                     } finally {
                         onConnectionFinish();
                     }
@@ -1365,6 +1377,20 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         return true;
     }
+
+    private Interceptor pec = new Interceptor() {
+        @Override
+        public Response intercept(@NonNull Chain chain) throws IOException {
+
+            Response response = chain.proceed(chain.request());
+
+            String responseBodyString = response.peekBody(Long.MAX_VALUE).string();
+            logDebug("\n\uD83D\uDC1E " + "R: " + chain.request().url() + "\n\n" +
+                    responseBodyString + " \uD83D\uDC1E\n");
+
+            return response;
+        }
+    };
 
     protected RequestParams filterRequestParams(RequestParams requestParams) {
         return requestParams;
