@@ -133,10 +133,10 @@ public class DateTimeUtils {
         Calendar toDay = Calendar.getInstance();
         toDay.setTime(toDateTime);
 
-        Long diff = toDay.getTimeInMillis() - fromDay.getTimeInMillis();
-        Long days = diff / (24 * 60 * 60 * 1000);
+        long diff = toDay.getTimeInMillis() - fromDay.getTimeInMillis();
+        long days = diff / (24 * 60 * 60 * 1000);
 
-        return days.intValue();
+        return (int) days;
     }
 
     public static String dateToLocaleStringFormat(Context context, Date date) {
@@ -308,6 +308,23 @@ public class DateTimeUtils {
         }
     }
 
+    public static String dateTimeToString(Date date, String format, Locale locale) {
+        if (date == null) {
+            return null;
+        }
+        SimpleDateFormat fmt = new SimpleDateFormat(format,
+                locale);
+        try {
+            return fmt.format(date);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static String dateTimeToString(Date date, String format) {
+        return dateTimeToString(date, format, Locale.getDefault());
+    }
+
     public static String dateTimeToStringWithTimezone(TimeZone timezone,
                                                       Date date, Locale locale) {
         if (date == null) {
@@ -381,12 +398,12 @@ public class DateTimeUtils {
         Calendar lCal = Calendar.getInstance();
         lCal.setTime(date);
 
-        Integer hours = lCal.get(Calendar.HOUR_OF_DAY);
+        int hours = lCal.get(Calendar.HOUR_OF_DAY);
         if (hours == 0) {
             hours = 12;
         }
 
-        Integer mins = lCal.get(Calendar.MINUTE);
+        int mins = lCal.get(Calendar.MINUTE);
 
         return 60 * hours + mins;
     }
@@ -396,13 +413,8 @@ public class DateTimeUtils {
         if (inputDate != null) {
             SimpleDateFormat sourceFormat1 = new SimpleDateFormat(format, Locale.ENGLISH);
 
-            if (sourceFormat1 != null) {
-                sourceFormat1.setTimeZone(TimeZone.getTimeZone("UTC"));
-                String dateStr = sourceFormat1.format(inputDate);
-                return dateStr;
-            } else {
-                return "";
-            }
+            sourceFormat1.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return sourceFormat1.format(inputDate);
         } else {
             return "";
         }

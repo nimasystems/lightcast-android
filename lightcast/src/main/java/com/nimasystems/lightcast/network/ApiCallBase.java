@@ -1386,7 +1386,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
             String responseBodyString = response.peekBody(Long.MAX_VALUE).string();
             logDebug("\n\uD83D\uDC1E " + "R: " + chain.request().url() + "\n\n" +
-                    responseBodyString + " \uD83D\uDC1E\n");
+                    responseBodyString + "\n\n \uD83D\uDC1E\n");
 
             return response;
         }
