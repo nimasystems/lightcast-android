@@ -110,6 +110,10 @@ public class OperationResponse {
         return fetchedData;
     }
 
+    public Object getFirstObject() {
+        return fetchedData != null && fetchedData.size() > 0 ? fetchedData.get(0) : null;
+    }
+
     public boolean isSuccessful() {
         return isSuccessful;
     }

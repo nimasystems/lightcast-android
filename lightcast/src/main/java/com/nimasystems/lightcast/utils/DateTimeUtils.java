@@ -74,7 +74,8 @@ public class DateTimeUtils {
         if (dateStringInUtc == null) {
             return null;
         }
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
+        String formatStr = dateStringInUtc.contains(" ") ? "yyyy-MM-dd HH:mm:ss" : "yyyy-MM-dd";
+        SimpleDateFormat format = new SimpleDateFormat(formatStr,
                 Locale.ENGLISH);
         TimeZone tz = TimeZone.getTimeZone("UTC");
         format.setTimeZone(tz);
