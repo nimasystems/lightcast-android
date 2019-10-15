@@ -31,6 +31,11 @@ public class JSONUtils {
         return map;
     }
 
+    public static String optString(JSONObject obj, String key) {
+        String str = obj.optString(key);
+        return StringUtils.isNullOrEmpty(str) ? null : "";
+    }
+
     // Credits to: http://stackoverflow.com/questions/21720759/convert-a-json-string-to-a-hashmap
     public static List<Object> toList(JSONArray array) throws JSONException {
         List<Object> list = new ArrayList<>();
