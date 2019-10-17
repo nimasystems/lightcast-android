@@ -1407,13 +1407,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     }
 
     public boolean makeCall() {
-        boolean ret;
-        try {
-            ret = makeCall(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            ret = false;
-        }
+        boolean ret = makeCall(true);
 
         if (!ret) {
             doPostOperations(false);
@@ -1423,13 +1417,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     }
 
     public boolean startAsyncCall() {
-        boolean ret;
-
-        try {
-            ret = makeCall(false);
-        } catch (Exception e) {
-            ret = false;
-        }
+        boolean ret = makeCall(false);
 
         if (!ret) {
             doPostOperations(false);
