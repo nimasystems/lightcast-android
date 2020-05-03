@@ -28,7 +28,7 @@ public class OperationResponse {
             this.isSuccessful = false;
             this.code = serverError.code;
             this.message = serverError.message;
-        } else {
+        } else if (fetchedDataItem != null) {
             this.fetchedData = new ArrayList<Object>() {{
                 add(fetchedDataItem);
             }};
