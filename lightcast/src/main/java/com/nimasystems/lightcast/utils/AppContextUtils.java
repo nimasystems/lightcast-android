@@ -22,7 +22,6 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
@@ -78,7 +77,7 @@ public class AppContextUtils {
                 accounts = accountManager.getAccountsByType("com.google");
             }
         } catch (Exception e) {
-            Log.d("A", e.getMessage());
+            e.printStackTrace();
         }
 
         if (accounts == null || accounts.length < 1) {
@@ -161,7 +160,7 @@ public class AppContextUtils {
             userAgent = pInfo.packageName + "/" + pInfo.versionName + " (" +
                     Build.MANUFACTURER + "/" + Build.MODEL + "; android/" + Build.VERSION.RELEASE + "; " +
                     "locale:" + I18n.getLocaleCode(context) + "; " +
-                    "display:" + String.valueOf(scrS.x) + "x" + String.valueOf(scrS.y) + "," + String.valueOf(densityDpi) + ")";
+                    "display:" + scrS.x + "x" + scrS.y + "," + densityDpi + ")";
         } else {
             userAgent = (!StringUtils.isNullOrEmpty(appName) ? appName : pInfo.packageName) + "/" + pInfo.versionName + " ( " +
                     Build.MANUFACTURER + "/" + Build.MODEL + "; Android " +
