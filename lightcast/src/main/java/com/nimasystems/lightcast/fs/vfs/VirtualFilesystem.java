@@ -207,23 +207,27 @@ public class VirtualFilesystem {
         mDb.beginTransaction();
 
         try {
-            mDb.rawQuery(
+            Cursor c = mDb.rawQuery(
                     sql,
                     new String[]{vfile.actualFilename, vfile.fileExt,
                             Long.toString(vfile.filesize),
                             DbUtils.DateToSql(vfile.createdOn), vfile.dirHash,
                             vfile.fileHash});
 
-            vfile.fileId = (int) DbUtils.getLastInsertedId(mDb);
+            if (c != null) {
+                vfile.fileId = (int) DbUtils.getLastInsertedId(mDb);
 
-            // copy the file now
-            FileOutputStream fos = new FileOutputStream(fullFilePath);
-            fos.write(fileData);
-            fos.close();
+                c.close();
 
-            this.mCurrentFileCount++;
+                // copy the file now
+                FileOutputStream fos = new FileOutputStream(fullFilePath);
+                fos.write(fileData);
+                fos.close();
 
-            mLogger.info("Virtual file created: " + vfile);
+                this.mCurrentFileCount++;
+
+                mLogger.info("Virtual file created: " + vfile);
+            }
 
             mDb.setTransactionSuccessful();
         } finally {
