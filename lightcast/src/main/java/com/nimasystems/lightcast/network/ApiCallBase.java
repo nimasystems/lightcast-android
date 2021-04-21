@@ -86,12 +86,13 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     public static final String DEFAULT_ERROR_EXTRA_DATA_KEY = "data";
 
     public static final int DEFAULT_CONNECT_TIMEOUT = 10000;
+    public static final int DEFAULT_WRITE_TIMEOUT = 30000;
     public static final int DEFAULT_READ_TIMEOUT = 30000;
     public static final int DEFAULT_MAX_RETRIES_TIMEOUT = 20000;
 
     protected int mConnectTimeout = DEFAULT_CONNECT_TIMEOUT;
     protected int mReadTimeout = DEFAULT_READ_TIMEOUT;
-    protected int mWriteTimeout = DEFAULT_READ_TIMEOUT;
+    protected int mWriteTimeout = DEFAULT_WRITE_TIMEOUT;
 
     //protected final Logger mLogger = LoggerFactory.getLogger(this.getClass());
 
@@ -725,8 +726,6 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
     protected void onConnectionFinish() {
         //logDebug("Connection finish (" + mConnectionUrl + ")");
-
-        mOKHttpClient = null;
     }
 
     protected void onConnectionCancel() {
@@ -1065,7 +1064,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         return useSSL;
     }
 
-    protected OkHttpClient.Builder getHttpClientBuilder() {
+    public static OkHttpClient.Builder getHttpClientBuilder() {
         return new OkHttpClient().newBuilder();
     }
 
@@ -1112,6 +1111,14 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         }
 
         return ret;
+    }
+
+    public OkHttpClient getOKHttpClient() {
+        return mOKHttpClient;
+    }
+
+    public void setOKHttpClient(OkHttpClient httpClient) {
+        this.mOKHttpClient = httpClient;
     }
 
     private OkHttpClient mOKHttpClient;

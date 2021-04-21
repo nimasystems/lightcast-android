@@ -2,6 +2,6 @@ package com.nimasystems.lightcast.network;
 
 import org.json.JSONObject;
 
-interface UnauthorizedInterceptorListener {
+public interface UnauthorizedInterceptorListener {
     void OnUnauthorizedInterceptorAction(int responseCode, JSONObject responseJSON);
 }
