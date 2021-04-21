@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ServerResponse<T> {
-    private boolean isSuccessful;
+    private final boolean isSuccessful;
     private HashMap<String, Object> data;
     private ApiServerErrorModel serverError;
 
@@ -56,15 +56,18 @@ public class ServerResponse<T> {
     }
 
     public int getInt(@NonNull String key) {
-        return data != null ? (int) data.get(key) : 0;
+        Integer d = data != null ? (Integer) data.get(key) : null;
+        return d != null ? d : 0;
     }
 
     public float getFloat(@NonNull String key) {
-        return data != null ? (float) data.get(key) : 0.0f;
+        Float d = data != null ? (Float) data.get(key) : null;
+        return d != null ? d : 0;
     }
 
     public double getDouble(@NonNull String key) {
-        return data != null ? (double) data.get(key) : 0.0f;
+        Double d = data != null ? (Double) data.get(key) : null;
+        return d != null ? d : 0;
     }
 
     public List<?> getList(@NonNull String key) {
@@ -80,7 +83,8 @@ public class ServerResponse<T> {
     }
 
     public boolean getBoolean(@NonNull String key) {
-        return data != null && (boolean) data.get(key);
+        Boolean d = data != null ? (Boolean) data.get(key) : null;
+        return d != null ? d : false;
     }
 
     public HashMap<String, Object> getMap(@NonNull String key) {

@@ -38,7 +38,7 @@ public class SquareRelativeLayout extends RelativeLayout {
         } else if (heightMode == MeasureSpec.EXACTLY && heightSize > 0) {
             size = heightSize;
         } else {
-            size = widthSize < heightSize ? widthSize : heightSize;
+            size = Math.min(widthSize, heightSize);
         }
 
         int finalMeasureSpec = MeasureSpec.makeMeasureSpec(size, MeasureSpec.EXACTLY);

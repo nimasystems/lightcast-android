@@ -12,7 +12,6 @@ public class StorageHelper {
     private void checkStorage() {
         // Get the external storage's state
         String state = Environment.getExternalStorageState();
-        //noinspection IfCanBeSwitch
         if (state.equals(Environment.MEDIA_MOUNTED)) {
             // Storage is available and writeable
             externalStorageAvailable = externalStorageWriteable = true;

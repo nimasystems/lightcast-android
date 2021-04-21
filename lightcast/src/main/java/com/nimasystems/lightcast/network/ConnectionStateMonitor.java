@@ -7,6 +7,8 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.os.Build;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 // TODO: make this shit work!
@@ -49,12 +51,12 @@ public class ConnectionStateMonitor {
         }
 
         @Override
-        public void onAvailable(Network network) {
+        public void onAvailable(@NonNull Network network) {
             updateNetworkState(network);
         }
 
         @Override
-        public void onLost(Network network) {
+        public void onLost(@NonNull Network network) {
             updateNetworkState(network);
         }
     }

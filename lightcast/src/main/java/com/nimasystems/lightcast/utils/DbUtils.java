@@ -23,10 +23,7 @@ public class DbUtils {
         }
         CharSequence c = DateFormat.format(DateTimeUtils.FORMAT_SQL_LONG,
                 date.getTime());
-        String ret = c.toString();
-        //noinspection ConstantConditions
-        ret = (ret == null) ? NULL : ret;
-        return ret;
+        return c.toString();
     }
 
     public static Date SqlStringToDate(String strDate) {

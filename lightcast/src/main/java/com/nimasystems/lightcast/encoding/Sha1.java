@@ -1,6 +1,6 @@
 package com.nimasystems.lightcast.encoding;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -13,12 +13,12 @@ public class Sha1 {
         try {
             digest = MessageDigest.getInstance("SHA-1");
             digest.reset();
-            input = digest.digest(str.getBytes("UTF-8"));
+            input = digest.digest(str.getBytes(StandardCharsets.UTF_8));
 
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e1) {
+        } catch (NoSuchAlgorithmException e1) {
             e1.printStackTrace();
         }
-        return convertToHex(input);
+        return input != null ? convertToHex(input) : null;
     }
 
     public static String getHash(byte[] data) {
@@ -33,7 +33,7 @@ public class Sha1 {
         } catch (NoSuchAlgorithmException e1) {
             e1.printStackTrace();
         }
-        return convertToHex(input);
+        return input != null ? convertToHex(input) : null;
     }
 
     private static String convertToHex(byte[] data) {
@@ -43,6 +43,7 @@ public class Sha1 {
             int halfbyte = (data[i] >>> 4) & 0x0F;
             int two_halfs = 0;
             do {
+                //noinspection ConstantConditions
                 if ((0 <= halfbyte) && (halfbyte <= 9))
                     buf.append((char) ('0' + halfbyte));
                 else

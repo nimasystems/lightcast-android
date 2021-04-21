@@ -7,13 +7,8 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import com.androidnetworking.AndroidNetworking;
-import com.androidnetworking.common.ANRequest;
-import com.androidnetworking.common.ANResponse;
-import com.androidnetworking.common.RequestBuilder;
-import com.androidnetworking.error.ANError;
-import com.androidnetworking.interfaces.OkHttpResponseAndJSONObjectRequestListener;
 import com.nimasystems.lightcast.encryption.AESCrypt;
 import com.nimasystems.lightcast.logging.LcLogger;
 import com.nimasystems.lightcast.utils.StringUtils;
@@ -266,7 +261,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
                 if (objError != null) {
                     String domain = objError.optString("domain");
-                    Integer code = objError.optInt("code");
+                    int code = objError.optInt("code");
                     String message = objError.optString("message");
 
                     err = new ApiServerErrorModel();
@@ -708,9 +703,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         ac = (ac != null) ? ac.replace('_', '-') : null;
 
         if (!StringUtils.isNullOrEmpty(ac)) {
-            //noinspection ConstantConditions
-            mRequestHeaders.add(new Header("Accept-Language", ac != null ? ac
-                    .toLowerCase(Locale.US) : null));
+            mRequestHeaders.add(new Header("Accept-Language", ac
+                    .toLowerCase(Locale.US)));
         }
 
         // let the server know we expect JSON
@@ -940,7 +934,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
     private TrustManager[] trustAllCerts;
 
-    private X509TrustManager mX509TrustManager = new X509TrustManager() {
+    private final X509TrustManager mX509TrustManager = new X509TrustManager() {
         @SuppressLint("TrustAllX509TrustManager")
         @Override
         public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
@@ -957,7 +951,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         }
     };
 
-    private HostnameVerifier mHostnameVerifier = new HostnameVerifier() {
+    private final HostnameVerifier mHostnameVerifier = new HostnameVerifier() {
         @SuppressLint("BadHostnameVerifier")
         @Override
         public boolean verify(String hostname, SSLSession session) {
@@ -1079,8 +1073,10 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                     v = v.equals("0") ? "" : v;
                 } else*/
                 if (val instanceof HashMap) {
+                    //noinspection rawtypes
                     v = new JSONObject((HashMap) val).toString();
                 } else if (val instanceof List) {
+                    //noinspection rawtypes
                     v = new JSONArray((List) val).toString();
                 }
 
@@ -1175,6 +1171,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         boolean trustSSL = (!mUseSSL || mSSLTrustAll);
 
         // prepare the request
+        OkHttpClient client = new OkHttpClient();
+
         RequestBuilder builder;
 
         RequestParams rparams = getRequestParams();
@@ -1190,17 +1188,14 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         if (requestIsMultipart) {
             builder = new ANRequest.MultiPartBuilder<>(mConnectionUrl);
 
-            //noinspection ConstantConditions
-            if (builder instanceof ANRequest.MultiPartBuilder) {
-                ANRequest.MultiPartBuilder bb = (ANRequest.MultiPartBuilder) builder;
-                bb.addMultipartParameter(preparedRequestParams);
+            ANRequest.MultiPartBuilder bb = (ANRequest.MultiPartBuilder) builder;
+            bb.addMultipartParameter(preparedRequestParams);
 
-                for (String key : fparams.keySet()) {
-                    RequestParams.FileWrapper obj = fparams.get(key);
+            for (String key : fparams.keySet()) {
+                RequestParams.FileWrapper obj = fparams.get(key);
 
-                    if (obj != null) {
-                        bb.addMultipartFile(key, obj.file);
-                    }
+                if (obj != null) {
+                    bb.addMultipartFile(key, obj.file);
                 }
             }
 
@@ -1265,7 +1260,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
             httpClientBuilder.authenticator(new Authenticator() {
                 @Override
-                public Request authenticate(@NonNull Route route, @NonNull Response response) {
+                public Request authenticate(@Nullable Route route, @NonNull Response response) {
                     String credential = Credentials.basic(mHttpAuthUsername, mHttpAuthPassword);
                     return response.request().newBuilder().header("Authorization", credential).build();
                 }
@@ -1388,7 +1383,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         return true;
     }
 
-    private Interceptor pec = new Interceptor() {
+    private final Interceptor pec = new Interceptor() {
         @Override
         public Response intercept(@NonNull Chain chain) throws IOException {
 

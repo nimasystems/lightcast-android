@@ -13,19 +13,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Random;
 
 public class FileUtils {
 
-    public static void createRandomContentsFile(double fileSize, File file) throws FileNotFoundException, UnsupportedEncodingException {
+    public static void createRandomContentsFile(double fileSize, File file) throws FileNotFoundException {
 
         Random random = new Random();
         long start = System.currentTimeMillis();
-        PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8")), false);
+        PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8)), false);
         int counter = 0;
 
         while (true) {
@@ -82,22 +80,19 @@ public class FileUtils {
 
     public static String createSha1String(File file) throws Exception {
         byte[] d = createSha1(file);
-        return (d != null ? StringUtils.convertToHex(d) : null);
+        return StringUtils.convertToHex(d);
     }
 
     public static boolean deleteDirectoryRecursively(File dir, boolean emptyTopDir) {
 
         if (dir.isDirectory()) {
             String[] children = dir.list();
-            for (String aChildren : children) {
-                File child = new File(dir, aChildren);
-                if (child.isDirectory()) {
-                    deleteDirectoryRecursively(child, false);
-
-                    if (!child.delete()) {
-                        return false;
+            if (children != null) {
+                for (String aChildren : children) {
+                    File child = new File(dir, aChildren);
+                    if (child.isDirectory()) {
+                        deleteDirectoryRecursively(child, false);
                     }
-                } else {
                     if (!child.delete()) {
                         return false;
                     }
@@ -105,9 +100,7 @@ public class FileUtils {
             }
 
             if (!emptyTopDir) {
-                if (!dir.delete()) {
-                    return false;
-                }
+                return dir.delete();
             }
         }
 
@@ -153,50 +146,4 @@ public class FileUtils {
 
         return "file:" + path;
     }
-
-    public static String returnMemoryMappedFileContents(File file, int lines)
-            throws IOException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        String ret = null;
-        //noinspection TryFinallyCanBeTryWithResources
-        try {
-            FileChannel channel = fileInputStream.getChannel();
-            //noinspection TryFinallyCanBeTryWithResources
-            try {
-                ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY,
-                        0, channel.size());
-                buffer.position((int) channel.size());
-                int count = 0;
-                StringBuilder builder = new StringBuilder();
-                for (long i = channel.size() - 1; i >= 0; i--) {
-                    char c = (char) buffer.get((int) i);
-                    builder.append(c);
-                    if (c == '\n') {
-                        if (count == lines) {
-                            break;
-                        }
-                        count++;
-                        builder.reverse();
-                        ret += builder.toString();
-                        builder = new StringBuilder();
-                    }
-                }
-            } finally {
-                try {
-                    channel.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } finally {
-            try {
-                fileInputStream.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        return ret;
-    }
-
 }

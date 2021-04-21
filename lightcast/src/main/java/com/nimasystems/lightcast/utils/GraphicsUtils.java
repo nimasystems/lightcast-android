@@ -38,11 +38,11 @@ public class GraphicsUtils {
         Canvas canvas = new Canvas(targetBitmap);
         /*
          * Path path = new Path(); path.addCircle(((float) targetWidth - 1) / 2,
-		 * ((float) targetHeight - 1) / 2, (Math.min(((float) targetWidth),
-		 * ((float) targetHeight)) / 2), Path.Direction.CCW);
-		 * 
-		 * canvas.clipPath(path);
-		 */
+         * ((float) targetHeight - 1) / 2, (Math.min(((float) targetWidth),
+         * ((float) targetHeight)) / 2), Path.Direction.CCW);
+         *
+         * canvas.clipPath(path);
+         */
 
         final Paint paint = new Paint();
         paint.setColor(Color.WHITE);
@@ -185,6 +185,10 @@ public class GraphicsUtils {
         // decode full image
         Bitmap roughBitmap = BitmapFactory.decodeStream(in, null, options);
 
+        if (roughBitmap == null) {
+            return;
+        }
+
         // calc exact destination size
         Matrix m = new Matrix();
         RectF inRect = new RectF(0, 0, roughBitmap.getWidth(),
@@ -212,16 +216,16 @@ public class GraphicsUtils {
         final int width = options.outWidth;
         double inSampleSize = 1;
 
-		/*
+        /*
          * if (height > reqHeight || width > reqWidth) {
-		 * 
-		 * final int halfHeight = height / 2; final int halfWidth = width / 2;
-		 * 
-		 * // Calculate the largest inSampleSize value that is a power of 2 and
-		 * // keeps both // height and width larger than the requested height
-		 * and width. while ((halfHeight / inSampleSize) > reqHeight &&
-		 * (halfWidth / inSampleSize) > reqWidth) { inSampleSize *= 2; } }
-		 */
+         *
+         * final int halfHeight = height / 2; final int halfWidth = width / 2;
+         *
+         * // Calculate the largest inSampleSize value that is a power of 2 and
+         * // keeps both // height and width larger than the requested height
+         * and width. while ((halfHeight / inSampleSize) > reqHeight &&
+         * (halfWidth / inSampleSize) > reqWidth) { inSampleSize *= 2; } }
+         */
 
         if (height > reqHeight || width > reqWidth) {
             if (width > height) {
@@ -282,7 +286,6 @@ public class GraphicsUtils {
 
             InputStream inp = context.getResources()
                     .openRawResource(resourceId);
-            //noinspection TryFinallyCanBeTryWithResources
             try {
                 byte[] imgBuffer = FileUtils.getBytesFromInputStream(inp);
 
@@ -313,7 +316,6 @@ public class GraphicsUtils {
         try {
             InputStream inp = new FileInputStream(filename);
 
-            //noinspection TryFinallyCanBeTryWithResources
             try {
                 byte[] imgBuffer = FileUtils.getBytesFromInputStream(inp);
 

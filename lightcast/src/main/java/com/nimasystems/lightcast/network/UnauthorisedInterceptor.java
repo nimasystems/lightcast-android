@@ -1,6 +1,7 @@
 package com.nimasystems.lightcast.network;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import com.nimasystems.lightcast.utils.StringUtils;
@@ -20,7 +21,7 @@ public class UnauthorisedInterceptor implements Interceptor {
     private UnauthorizedInterceptorListener listener;
 
     @SuppressWarnings("FieldCanBeLocal")
-    private Context mContext;
+    private final Context mContext;
 
     public UnauthorizedInterceptorListener getListener() {
         return listener;

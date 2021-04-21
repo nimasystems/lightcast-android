@@ -38,6 +38,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -107,7 +108,7 @@ public final class DiskLruCache implements Closeable {
     private static final String REMOVE = "REMOVE";
     private static final String READ = "READ";
     /* XXX From java.nio.charset.Charsets */
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
+    private static final Charset UTF_8 = StandardCharsets.UTF_8;
     private final File directory;
     private final File journalFile;
     private final File journalFileTmp;
@@ -202,6 +203,7 @@ public final class DiskLruCache implements Closeable {
         }
         int resultLength = end - start;
         int copyLength = Math.min(resultLength, originalLength - start);
+        //noinspection ConstantConditions
         T[] result = (T[]) Array.newInstance(original.getClass()
                 .getComponentType(), resultLength);
         System.arraycopy(original, start, result, 0, copyLength);

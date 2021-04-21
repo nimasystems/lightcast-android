@@ -1,14 +1,5 @@
 package com.nimasystems.lightcast.utils;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.util.Base64;
-
-import java.security.MessageDigest;
-
 public class SocialNetworks {
 
     public static String getGooglePlusUrl(String packageName) {

@@ -1,5 +1,6 @@
 package com.nimasystems.lightcast.encryption;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.spec.AlgorithmParameterSpec;
 
@@ -9,10 +10,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  * @author vipin.cb , vipin.cb@experionglobal.com <br>
- *         Sep 27, 2013, 5:18:34 PM <br>
- *         Package:- <b>com.veebow.util</b> <br>
- *         Project:- <b>Veebow</b>
- *         <p/>
+ * Sep 27, 2013, 5:18:34 PM <br>
+ * Package:- <b>com.veebow.util</b> <br>
+ * Project:- <b>Veebow</b>
+ * <p/>
  */
 public class AESCrypt {
 
@@ -24,7 +25,7 @@ public class AESCrypt {
     public AESCrypt() throws Exception {
         // hash password with SHA-256 and crop the output to 128-bit for key
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        digest.update(SEED_16_CHARACTER.getBytes("UTF-8"));
+        digest.update(SEED_16_CHARACTER.getBytes(StandardCharsets.UTF_8));
         byte[] keyBytes = new byte[32];
         System.arraycopy(digest.digest(), 0, keyBytes, 0, keyBytes.length);
 
@@ -43,10 +44,10 @@ public class AESCrypt {
 
     public String encrypt(String plainText) throws Exception {
         cipher.init(Cipher.ENCRYPT_MODE, key, spec);
-        byte[] encrypted = cipher.doFinal(plainText.getBytes("UTF-8"));
+        byte[] encrypted = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
 
         return new String(android.util.Base64.encode(encrypted,
-                android.util.Base64.DEFAULT), "UTF-8");
+                android.util.Base64.DEFAULT), StandardCharsets.UTF_8);
     }
 
     public String decrypt(String cryptedText) throws Exception {
@@ -55,7 +56,7 @@ public class AESCrypt {
                 android.util.Base64.DEFAULT);
         byte[] decrypted = cipher.doFinal(bytes);
 
-        return new String(decrypted, "UTF-8");
+        return new String(decrypted, StandardCharsets.UTF_8);
     }
 
 }

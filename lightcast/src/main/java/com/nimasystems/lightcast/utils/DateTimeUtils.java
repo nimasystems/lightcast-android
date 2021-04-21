@@ -448,6 +448,10 @@ public class DateTimeUtils {
             return null;
         }
 
+        if (dateUTC == null) {
+            return null;
+        }
+
         SimpleDateFormat sourceFormat1 = new SimpleDateFormat(format, Locale.ENGLISH);
         Calendar cal = Calendar.getInstance();
         TimeZone tz = cal.getTimeZone();
@@ -486,6 +490,10 @@ public class DateTimeUtils {
             return null;
         }
 
+        if (dateServerTimezone == null) {
+            return null;
+        }
+
         SimpleDateFormat sourceFormat1 = new SimpleDateFormat(format);
         TimeZone tz = TimeZone.getTimeZone("UTC");
         sourceFormat1.setTimeZone(tz);
@@ -506,6 +514,10 @@ public class DateTimeUtils {
             dateUTC = sourceFormat.parse(dateStr);
         } catch (ParseException e) {
             e.printStackTrace();
+            return null;
+        }
+
+        if (dateUTC == null) {
             return null;
         }
 
@@ -535,6 +547,10 @@ public class DateTimeUtils {
             return null;
         }
 
+        if (dateUTC == null) {
+            return null;
+        }
+
         SimpleDateFormat sourceFormat1 = new SimpleDateFormat(format);
         sourceFormat1.setTimeZone(TimeZone.getTimeZone("UTC"));
         date = sourceFormat1.format(dateUTC);
@@ -554,6 +570,10 @@ public class DateTimeUtils {
             dateUTC = sourceFormat.parse(dateStr);
         } catch (ParseException e) {
             e.printStackTrace();
+            return null;
+        }
+
+        if (dateUTC == null) {
             return null;
         }
 

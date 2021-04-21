@@ -1,6 +1,5 @@
 package com.nimasystems.lightcast.utils;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Point;
 import android.util.DisplayMetrics;
@@ -15,8 +14,6 @@ public class ScreenUtils {
 
     }
 
-    @SuppressWarnings("deprecation")
-    @SuppressLint("NewApi")
     public static Point getDisplaySize(Context context) {
         if (mScrDimensions != null) {
             return mScrDimensions;
@@ -25,12 +22,7 @@ public class ScreenUtils {
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Point dims = new Point();
 
-        if (android.os.Build.VERSION.SDK_INT >= 13) {
-            wm.getDefaultDisplay().getSize(dims);
-        } else if (android.os.Build.VERSION.SDK_INT < 13) {
-            dims.x = wm.getDefaultDisplay().getWidth();
-            dims.y = wm.getDefaultDisplay().getHeight();
-        }
+        wm.getDefaultDisplay().getSize(dims);
 
         mScrDimensions = dims;
 

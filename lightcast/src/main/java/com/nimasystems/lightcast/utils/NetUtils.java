@@ -16,8 +16,8 @@ public class NetUtils {
 
             // for whatever reason we end up with double slashes if this is not
             // done...
-            if (p != null && p.length() > 0 && p.substring(0, 1).equals("/")) {
-                p = p.substring(1, p.length());
+            if (p != null && p.length() > 0 && p.startsWith("/")) {
+                p = p.substring(1);
             }
 
             Uri.Builder builder = new Uri.Builder().scheme(url.getProtocol())
@@ -31,7 +31,7 @@ public class NetUtils {
     }
 
     public static boolean setMobileDataEnabled(Context context, boolean enabled) {
-        boolean success = true;
+        boolean success = false;
         try {
             final ConnectivityManager conman = (ConnectivityManager) context
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -42,13 +42,17 @@ public class NetUtils {
             iConnectivityManagerField.setAccessible(true);
             final Object iConnectivityManager = iConnectivityManagerField
                     .get(conman);
-            final Class<?> iConnectivityManagerClass = Class
-                    .forName(iConnectivityManager.getClass().getName());
-            final java.lang.reflect.Method setMobileDataEnabledMethod = iConnectivityManagerClass
-                    .getDeclaredMethod("setMobileDataEnabled", Boolean.TYPE);
-            setMobileDataEnabledMethod.setAccessible(true);
+            final Class<?> iConnectivityManagerClass = iConnectivityManager != null ? Class
+                    .forName(iConnectivityManager.getClass().getName()) : null;
+            final java.lang.reflect.Method setMobileDataEnabledMethod = iConnectivityManagerClass != null ?
+                    iConnectivityManagerClass
+                            .getDeclaredMethod("setMobileDataEnabled", Boolean.TYPE) : null;
 
-            setMobileDataEnabledMethod.invoke(iConnectivityManager, enabled);
+            if (setMobileDataEnabledMethod != null) {
+                setMobileDataEnabledMethod.setAccessible(true);
+                setMobileDataEnabledMethod.invoke(iConnectivityManager, enabled);
+                success = true;
+            }
         } catch (Exception e) {
             e.printStackTrace();
             success = false;

@@ -28,7 +28,6 @@ public class StringUtils {
      */
     public static String implodeArray(String[] inputArray, String glueString) {
 
-        /** Output variable */
         String output = "";
 
         if (inputArray.length > 0) {
@@ -52,6 +51,7 @@ public class StringUtils {
             int halfbyte = (b >>> 4) & 0x0F;
             int two_halfs = 0;
             do {
+                //noinspection ConstantConditions
                 buf.append((0 <= halfbyte) && (halfbyte <= 9) ? (char) ('0' + halfbyte) : (char) ('a' + (halfbyte - 10)));
                 halfbyte = b & 0x0F;
             } while (two_halfs++ < 1);
