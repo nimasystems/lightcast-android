@@ -15,6 +15,7 @@ import com.nimasystems.lightcast.utils.StringUtils;
 
 import org.cryptonode.jncryptor.AES256JNCryptor;
 import org.cryptonode.jncryptor.JNCryptor;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,11 +41,17 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Authenticator;
+import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.Credentials;
+import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.Route;
@@ -172,7 +179,6 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     protected void init() {
         objectTag = UUID.randomUUID().toString();
         mRequestHeaders = new ArrayList<>();
-        trustAllCerts = new TrustManager[]{mX509TrustManager};
         mInterceptors = new ArrayList<>();
     }
 
@@ -727,47 +733,58 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         //logDebug("Connection cancel (" + mConnectionUrl + ")");
     }
 
-    protected void handleConnectionError(Response response, ANError error) {
-        String errorBody = error != null ? error.getErrorBody() : null;
+    protected void handleConnectionError(final @Nullable Response response, final @Nullable Exception error) {
+        String errorBody = null;
+
+        try {
+            ResponseBody body = response != null ? response.body() : null;
+            errorBody = body != null ? body.string() : null;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         if (errorBody != null) {
             try {
                 mResponseJson = new JSONObject(errorBody);
             } catch (JSONException e) {
-                //
+                e.printStackTrace();
+                logError("Could not decode errorous response: " + e.getMessage());
             }
         }
 
         mResponseStatusCode = response != null ? response.code() : 0;
-        mResponseHeaders = makeResponseHeaders(response != null ? response.headers() : null);
+        mResponseHeaders = response != null ? makeResponseHeaders(response.headers()) : null;
         mResponseBody = response != null ? response.body() : null;
         mResponseIsSuccess = false;
 
         logError("Connection failure (" + mConnectionUrl + "), Status code: "
-                + mResponseStatusCode + ", Error: " +
-                (error != null ? error.getErrorBody() : (response != null ? response.message() : ""))
-        );
+                + mResponseStatusCode + ", Error: " + errorBody);
     }
 
-    protected void handleConnectionSuccess(Response response, JSONObject responseBody) {
-        mResponseJson = responseBody;
+    protected void handleConnectionSuccess(final @NonNull Response response, final @Nullable ResponseBody responseBody) {
+
+        try {
+            mResponseJson = responseBody != null ? new JSONObject(responseBody.string()) : null;
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+            logError("JSON read error: " + e.getMessage());
+        }
 
         /*logDebug("Connection success (" + mConnectionUrl + "), Status code: "
                 + mResponseStatusCode);*/
     }
 
-    protected void onConnectionSuccess(Response response, JSONObject responseBody) {
-        if (response != null) {
-            mResponseStatusCode = response.code();
-            mResponseHeaders = makeResponseHeaders(response.headers());
-            mResponseBody = response.body();
-        }
+    protected void onConnectionSuccess(final @NonNull Response response) {
+        // , JSONObject responseBody
+        mResponseStatusCode = response.code();
+        mResponseHeaders = makeResponseHeaders(response.headers());
+        mResponseBody = response.body();
 
         mResponseIsSuccess = (mResponseStatusCode == 200 || mResponseStatusCode == 304) ||
-                responseBody == null;
+                mResponseBody == null;
 
         if (mResponseIsSuccess) {
-            handleConnectionSuccess(response, responseBody);
+            handleConnectionSuccess(response, mResponseBody);
         } else {
             handleConnectionError(response, null);
         }
@@ -775,15 +792,21 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         doPostOperations(mResponseIsSuccess);
     }
 
-    protected void onConnectionFailure(Response response, ANError error) {
-        Response response2 = error != null ? error.getResponse() : null;
-        response2 = response2 != null ? response2 : response;
+    protected void onConnectionFailure(final @Nullable Response response, final @Nullable Exception error) {
+        handleConnectionError(response, error);
 
-        handleConnectionError(response2, error);
+        String errorBody = null;
 
-        if (error != null) {
+        try {
+            ResponseBody body = response != null ? response.body() : null;
+            errorBody = body != null ? body.string() : null;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (errorBody != null) {
             logError("\n\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\n\n" +
-                    "SR (" + error.getErrorDetail() + "): " + error.getMessage() + "\n\n" +
+                    "SR: " + errorBody + "\n\n" +
                     "\n\n\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\uD83D\uDC1E\n");
         }
 
@@ -932,32 +955,34 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         return (Looper.myLooper() == Looper.getMainLooper());
     }
 
-    private TrustManager[] trustAllCerts;
+    public static X509TrustManager getTrustedSSLManager() {
+        return new X509TrustManager() {
+            @SuppressLint("TrustAllX509TrustManager")
+            @Override
+            public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+            }
 
-    private final X509TrustManager mX509TrustManager = new X509TrustManager() {
-        @SuppressLint("TrustAllX509TrustManager")
-        @Override
-        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-        }
+            @SuppressLint("TrustAllX509TrustManager")
+            @Override
+            public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+            }
 
-        @SuppressLint("TrustAllX509TrustManager")
-        @Override
-        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-        }
+            @Override
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return new java.security.cert.X509Certificate[]{};
+            }
+        };
+    }
 
-        @Override
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-            return new java.security.cert.X509Certificate[]{};
-        }
-    };
-
-    private final HostnameVerifier mHostnameVerifier = new HostnameVerifier() {
-        @SuppressLint("BadHostnameVerifier")
-        @Override
-        public boolean verify(String hostname, SSLSession session) {
-            return true;
-        }
-    };
+    public static HostnameVerifier getApprovedHostnameVerifier() {
+        return new HostnameVerifier() {
+            @SuppressLint("BadHostnameVerifier")
+            @Override
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
+        };
+    }
 
     protected boolean parseResponse() {
 
@@ -1170,10 +1195,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         boolean trustSSL = (!mUseSSL || mSSLTrustAll);
 
-        // prepare the request
-        OkHttpClient client = new OkHttpClient();
-
-        RequestBuilder builder;
+        Request.Builder requestBuilder = new Request.Builder()
+                .url(mConnectionUrl);
 
         RequestParams rparams = getRequestParams();
         rparams = rparams != null ? rparams : new RequestParams();
@@ -1185,45 +1208,54 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         ConcurrentHashMap<String, RequestParams.FileWrapper> fparams = rparams.getFileParams();
         boolean requestIsMultipart = fparams != null && fparams.size() > 0;
 
-        if (requestIsMultipart) {
-            builder = new ANRequest.MultiPartBuilder<>(mConnectionUrl);
+        RequestBody requestBody;
 
-            ANRequest.MultiPartBuilder bb = (ANRequest.MultiPartBuilder) builder;
-            bb.addMultipartParameter(preparedRequestParams);
+        if (requestIsMultipart) {
+            MultipartBody.Builder requestBodyBuilder = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM);
+
+            if (preparedRequestParams != null) {
+                for (String key : preparedRequestParams.keySet()) {
+                    String obj = preparedRequestParams.get(key);
+
+                    if (obj != null) {
+                        requestBodyBuilder.addFormDataPart(key, obj);
+                    }
+                }
+            }
 
             for (String key : fparams.keySet()) {
                 RequestParams.FileWrapper obj = fparams.get(key);
 
                 if (obj != null) {
-                    bb.addMultipartFile(key, obj.file);
+                    requestBodyBuilder.addFormDataPart(key, obj.customFileName,
+                            RequestBody.create(MediaType.parse(obj.contentType), obj.file));
                 }
             }
 
-        } else if (rt == RequestType.Post) {
-            builder = new ANRequest.PostRequestBuilder<>(mConnectionUrl);
-
-            if (preparedRequestParams != null) {
-                ((ANRequest.PostRequestBuilder) builder).addBodyParameter(preparedRequestParams);
-            }
-
-        } else if (rt == RequestType.Put) {
-            builder = new ANRequest.PutRequestBuilder(mConnectionUrl);
-
-            if (preparedRequestParams != null) {
-                ((ANRequest.PostRequestBuilder) builder).addBodyParameter(preparedRequestParams);
-            }
-        } else if (rt == RequestType.Delete) {
-            builder = new ANRequest.DeleteRequestBuilder(mConnectionUrl);
-
-            if (preparedRequestParams != null) {
-                ((ANRequest.PostRequestBuilder) builder).addBodyParameter(preparedRequestParams);
-            }
+            requestBody = requestBodyBuilder.build();
         } else {
-            builder = new ANRequest.GetRequestBuilder(mConnectionUrl);
+            FormBody.Builder formBodyBuilder = new FormBody.Builder();
 
             if (preparedRequestParams != null) {
-                builder.addQueryParameter(preparedRequestParams);
+                for (String key : preparedRequestParams.keySet()) {
+                    String obj = preparedRequestParams.get(key);
+
+                    if (obj != null) {
+                        formBodyBuilder.add(key, obj);
+                    }
+                }
             }
+
+            requestBody = formBodyBuilder.build();
+        }
+
+        if (rt == RequestType.Delete) {
+            requestBuilder.delete(requestBody);
+        } else if (rt == RequestType.Put) {
+            requestBuilder.put(requestBody);
+        } else if (rt == RequestType.Post) {
+            requestBuilder.post(requestBody);
         }
 
         // set the headers
@@ -1241,46 +1273,134 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         if (allHeaders != null) {
             for (Header header : allHeaders) {
-                builder.addHeaders(header.getKey(), header.getValue());
+                requestBuilder.header(header.getKey(), header.getValue());
             }
         }
 
         // user agent
         if (!StringUtils.isNullOrEmpty(mRequestUserAgent)) {
-            builder.addHeaders("User-Agent", mRequestUserAgent);
+            requestBuilder.header("User-Agent", mRequestUserAgent);
         }
 
         // prepare OkHttpClient
+        if (mOKHttpClient == null) {
+            mOKHttpClient = getPreparedOkHttpClient(mLogger,
+                    mContext,
+                    getHttpClientBuilder(),
+                    mDebug,
+                    trustSSL,
+                    mHttpAuthEnabled,
+                    mHttpAuthUsername,
+                    mHttpAuthPassword,
+                    this,
+                    mInterceptors,
+                    mConnectTimeout,
+                    mWriteTimeout,
+                    mReadTimeout);
+        }
 
-        OkHttpClient.Builder httpClientBuilder = getHttpClientBuilder();
+        Request request = requestBuilder.build();
+
+        // TODO: fixme
+//        requestBuilder.setTag(objectTag);
+        // TODO: fixme
+//        requestBuilder.setExecutor(mExecutor);
+
+        // prep the request
+
+        onConnectionStart();
+
+        if (synchronous) {
+            try {
+                Response response = mOKHttpClient.newCall(request).execute();
+
+                int responseCode = response.code();
+                boolean success = (responseCode == 200 || responseCode == 304);
+
+                if (!success) {
+                    onConnectionFailure(response, null);
+                } else {
+                    onConnectionSuccess(response);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                onConnectionFailure(null, null);
+            } finally {
+                onConnectionFinish();
+            }
+        } else {
+            mOKHttpClient.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                    try {
+                        onConnectionFailure(null, e);
+                    } finally {
+                        onConnectionFinish();
+                    }
+                }
+
+                @Override
+                public void onResponse(@NotNull Call call, @NotNull Response response) {
+                    try {
+                        onConnectionSuccess(response);
+                    } finally {
+                        onConnectionFinish();
+                    }
+                }
+            });
+        }
+
+        return true;
+    }
+
+    public static OkHttpClient getPreparedOkHttpClient(@NonNull final LcLogger logger,
+                                                       @NonNull final Context context,
+                                                       @NonNull final OkHttpClient.Builder httpClientBuilder,
+                                                       final boolean debugEnabled,
+                                                       final boolean trustSSL,
+                                                       final boolean authEnabled,
+                                                       @Nullable final String authUsername,
+                                                       @Nullable final String authPassword,
+                                                       @Nullable final UnauthorizedInterceptorListener unauthorizedInterceptorListener,
+                                                       @Nullable final List<Interceptor> interceptors,
+                                                       final int connectTimeout,
+                                                       final int writeTimeout,
+                                                       final int readTimeout) {
 
         // http auth
-        if (mHttpAuthEnabled) {
+        if (authEnabled && authUsername != null && authPassword != null) {
             //logDebug("HTTP AUTH ENABLED");
 
             httpClientBuilder.authenticator(new Authenticator() {
                 @Override
                 public Request authenticate(@Nullable Route route, @NonNull Response response) {
-                    String credential = Credentials.basic(mHttpAuthUsername, mHttpAuthPassword);
+                    String credential = Credentials.basic(authUsername, authPassword);
                     return response.request().newBuilder().header("Authorization", credential).build();
                 }
             });
         }
 
         // listen additionally to fetch the body of the response when code is not 200
-        UnauthorisedInterceptor unathInterceptor = new UnauthorisedInterceptor(mContext);
-        unathInterceptor.setListener(this);
-        httpClientBuilder.addInterceptor(unathInterceptor);
+        if (unauthorizedInterceptorListener != null) {
+            UnauthorisedInterceptor unathInterceptor = new UnauthorisedInterceptor(context);
+            unathInterceptor.setListener(unauthorizedInterceptorListener);
+            httpClientBuilder.addInterceptor(unathInterceptor);
+        }
 
         // add other interceptors
-        for (Interceptor i : mInterceptors) {
-            httpClientBuilder.addInterceptor(i);
+        if (interceptors != null) {
+            for (Interceptor i : interceptors) {
+                httpClientBuilder.addInterceptor(i);
+            }
         }
 
-        if (this.mDebug) {
+        if (debugEnabled) {
             // custom interceptor for prefetching a small part of the respnse (for error checking)
-            httpClientBuilder.addInterceptor(pec);
+            httpClientBuilder.addInterceptor(getDebugInterceptor(logger));
         }
+
+        TrustManager[] trustAllCerts = new TrustManager[]{getTrustedSSLManager()};
 
         // SSL trusting for fake / self-generated certificates
         if (trustSSL) {
@@ -1298,104 +1418,44 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                 final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
                 httpClientBuilder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
-                httpClientBuilder.hostnameVerifier(mHostnameVerifier);
+                httpClientBuilder.hostnameVerifier(getApprovedHostnameVerifier());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
         // timeouts
-        httpClientBuilder.connectTimeout(mConnectTimeout, TimeUnit.MILLISECONDS);
-        httpClientBuilder.writeTimeout(mWriteTimeout, TimeUnit.MILLISECONDS);
-        httpClientBuilder.readTimeout(mReadTimeout, TimeUnit.MILLISECONDS);
-
-        mOKHttpClient = httpClientBuilder.build();
-
-        builder.setOkHttpClient(mOKHttpClient);
-        builder.setTag(objectTag);
-        builder.setExecutor(mExecutor);
-
-        // prep the request
-
-        ANRequest request;
-
-        if (requestIsMultipart) {
-            request = ((ANRequest.MultiPartBuilder) builder).build();
-        } else if (rt == RequestType.Post) {
-            request = ((ANRequest.PostRequestBuilder) builder).build();
-        } else if (rt == RequestType.Put) {
-            request = ((ANRequest.PutRequestBuilder) builder).build();
-        } else if (rt == RequestType.Delete) {
-            request = ((ANRequest.DeleteRequestBuilder) builder).build();
-        } else {
-            request = ((ANRequest.GetRequestBuilder) builder).build();
+        if (connectTimeout > 0) {
+            httpClientBuilder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
         }
 
-        onConnectionStart();
-
-        if (synchronous) {
-            try {
-                ANResponse response = request.executeForJSONObject();
-
-                Response r = response.getOkHttpResponse();
-                boolean success;
-
-                if (r != null) {
-                    int responseCode = r.code();
-                    success = (responseCode == 200 || responseCode == 304) &&
-                            response.getError() == null;
-
-                    if (!success) {
-                        onConnectionFailure(r, response.getError());
-                    } else {
-                        onConnectionSuccess(r, (JSONObject) response.getResult());
-                    }
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                onConnectionFailure(null, null);
-            } finally {
-                onConnectionFinish();
-            }
-        } else {
-            request.getAsOkHttpResponseAndJSONObject(new OkHttpResponseAndJSONObjectRequestListener() {
-                @Override
-                public void onResponse(Response okHttpResponse, JSONObject response) {
-                    try {
-                        onConnectionSuccess(okHttpResponse, response);
-                    } finally {
-                        onConnectionFinish();
-                    }
-                }
-
-                @Override
-                public void onError(ANError anError) {
-                    try {
-                        onConnectionFailure(null, anError);
-                    } finally {
-                        onConnectionFinish();
-                    }
-                }
-            });
+        if (writeTimeout > 0) {
+            httpClientBuilder.writeTimeout(writeTimeout, TimeUnit.MILLISECONDS);
         }
 
-        return true;
+        if (readTimeout > 0) {
+            httpClientBuilder.readTimeout(readTimeout, TimeUnit.MILLISECONDS);
+        }
+
+        return httpClientBuilder.build();
     }
 
-    private final Interceptor pec = new Interceptor() {
-        @Override
-        public Response intercept(@NonNull Chain chain) throws IOException {
+    public static Interceptor getDebugInterceptor(@NonNull final LcLogger logger) {
+        return new Interceptor() {
+            @NonNull
+            @Override
+            public Response intercept(@NonNull Chain chain) throws IOException {
 
-            Response response = chain.proceed(chain.request());
+                Response response = chain.proceed(chain.request());
 
-            String responseBodyString = response.peekBody(Long.MAX_VALUE).string();
-            logDebug("\n\uD83D\uDC1E " + "R: " + chain.request().url() + "\n\n" +
-                    responseBodyString + "\n\n \uD83D\uDC1E\n");
+                String responseBodyString = response.peekBody(Long.MAX_VALUE).string();
+                logger.debug("\n\uD83D\uDC1E " + "R: " + chain.request().url() + "\n\n" +
+                        responseBodyString + "\n\n \uD83D\uDC1E\n");
 
-            return response;
-        }
-    };
+                return response;
+            }
+        };
+    }
 
     protected RequestParams filterRequestParams(RequestParams requestParams) {
         return requestParams;
@@ -1463,7 +1523,9 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         if (!mIsCancelled && mIsBusy && objectTag != null) {
             mIsCancelled = true;
             logInfo("Cancelling the request (" + mConnectionUrl + ")");
-            AndroidNetworking.forceCancel(objectTag);
+
+            // TODO: fixme
+//            AndroidNetworking.forceCancel(objectTag);
         }
     }
 

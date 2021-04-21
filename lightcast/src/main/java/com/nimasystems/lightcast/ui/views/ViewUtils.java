@@ -9,15 +9,8 @@ import java.util.ArrayList;
 
 public class ViewUtils {
 
-    @SuppressWarnings("deprecation")
-    @SuppressLint("NewApi")
     public static void setBackgroundDrawable(View view, Drawable drawable) {
-
-        if (android.os.Build.VERSION.SDK_INT >= 16) {
-            view.setBackground(drawable);
-        } else {
-            view.setBackgroundDrawable(drawable);
-        }
+        view.setBackground(drawable);
     }
 
     public static ArrayList<View> getViewsByTag(ViewGroup root, String tag) {
