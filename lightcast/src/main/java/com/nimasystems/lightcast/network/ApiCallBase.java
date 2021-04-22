@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +47,7 @@ import okhttp3.Callback;
 import okhttp3.Credentials;
 import okhttp3.FormBody;
 import okhttp3.Headers;
+import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -765,6 +767,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         try {
             mResponseJson = responseBody != null ? new JSONObject(responseBody.string()) : null;
         } catch (JSONException | IOException e) {
+            mResponseJson = null;
             e.printStackTrace();
             logError("JSON read error: " + e.getMessage());
         }
@@ -1124,9 +1127,11 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     private OkHttpClient mOKHttpClient;
 
     @SuppressLint("ObsoleteSdkInt")
-    protected boolean executeInternal(boolean synchronous,
-                                      String serverHostname, String serverAddress, Integer serverPort,
-                                      boolean useSSL) {
+    protected boolean executeInternal(final boolean synchronous,
+                                      final @NonNull String serverHostname,
+                                      final @NonNull String serverAddress,
+                                      final @NonNull Integer serverPort,
+                                      final boolean useSSL) {
 
         if (!verifyCallParams()) {
             if (mDebug) {
@@ -1142,12 +1147,12 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         beforeExecute();
 
-        serverHostname = filterServerHostname(serverHostname);
-        serverPort = filterServerPort(serverPort);
-        serverAddress = filterServerAddress(serverAddress);
-        useSSL = filterUseSSL(useSSL);
+        String serverHostnameFiltered = filterServerHostname(serverHostname);
+        Integer serverPortFiltered = filterServerPort(serverPort);
+        String serverAddressFiltered = filterServerAddress(serverAddress);
+        boolean useSSLFiltered = filterUseSSL(useSSL);
 
-        if (StringUtils.isNullOrEmpty(serverHostname)) {
+        if (StringUtils.isNullOrEmpty(serverHostnameFiltered)) {
             if (mDebug) {
                 logError("invalid hostname");
             }
@@ -1188,19 +1193,19 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         String queryPath = getRequestPreparedQueryPath();
 
         // prepare the url
-        mConnectionUrl = getConnectionUrl(useSSL, serverAddress,
-                serverHostname, serverPort, queryPath, null);
+        mConnectionUrl = getConnectionUrl(useSSLFiltered, serverAddressFiltered,
+                serverHostnameFiltered, serverPortFiltered, queryPath, null);
 
         //logDebug("URL: " + mConnectionUrl);
 
         String charset = getRequestCharset();
 
         // http://stackoverflow.com/questions/2172752/httpsurlconnection-and-intermittent-connections
-        if (useSSL || Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
+        if (useSSLFiltered || Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
             disableConnectionReuseIfNecessary();
         }
 
-        boolean trustSSL = (!mUseSSL || mSSLTrustAll);
+        boolean trustSSL = (!useSSLFiltered || mSSLTrustAll);
 
         Request.Builder requestBuilder = new Request.Builder()
                 .url(mConnectionUrl);
@@ -1236,7 +1241,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
                 if (obj != null) {
                     requestBodyBuilder.addFormDataPart(key, obj.customFileName,
-                            RequestBody.create(MediaType.parse(obj.contentType), obj.file));
+                            RequestBody.create(obj.file, MediaType.parse(obj.contentType)));
                 }
             }
 
@@ -1263,10 +1268,21 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             requestBuilder.put(requestBody);
         } else if (rt == RequestType.Post) {
             requestBuilder.post(requestBody);
+        } else {
+            // prepare the GET params and make the url query
+            if (preparedRequestParams != null) {
+                HttpUrl.Builder httpBuilder = HttpUrl.parse(mConnectionUrl).newBuilder();
+                if (preparedRequestParams != null) {
+                    for (Map.Entry<String, String> param : preparedRequestParams.entrySet()) {
+                        httpBuilder.addQueryParameter(param.getKey(), param.getValue());
+                    }
+                }
+                requestBuilder.url(httpBuilder.build());
+            }
         }
 
         // set the headers
-        prepareMyHeaders(serverHostname, charset);
+        prepareMyHeaders(serverHostnameFiltered, charset);
 
         Header[] allHeaders = getAllHeaders();
 
@@ -1306,36 +1322,43 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                     mReadTimeout);
         }
 
-        Request request = requestBuilder.build();
-
-        // TODO: fixme
-//        requestBuilder.setTag(objectTag);
-        // TODO: fixme
+        requestBuilder.tag(objectTag);
 //        requestBuilder.setExecutor(mExecutor);
+
+        final Request request = requestBuilder.build();
 
         // prep the request
 
         onConnectionStart();
 
-        if (synchronous) {
-            try {
-                Response response = mOKHttpClient.newCall(request).execute();
+        Runnable callRunnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Response response = mOKHttpClient.newCall(request).execute();
 
-                int responseCode = response.code();
-                boolean success = (responseCode == 200 || responseCode == 304);
+                    int responseCode = response.code();
+                    boolean success = (responseCode == 200 || responseCode == 304);
 
-                if (!success) {
-                    onConnectionFailure(response, null);
-                } else {
-                    onConnectionSuccess(response);
+                    if (!success) {
+                        onConnectionFailure(response, null);
+                    } else {
+                        onConnectionSuccess(response);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    onConnectionFailure(null, null);
+                } finally {
+                    onConnectionFinish();
                 }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                onConnectionFailure(null, null);
-            } finally {
-                onConnectionFinish();
             }
+        };
+
+        if (mExecutor != null) {
+            mExecutor.execute(callRunnable);
+        } else if (synchronous) {
+            callRunnable.run();
         } else {
             mOKHttpClient.newCall(request).enqueue(new Callback() {
                 @Override
@@ -1531,7 +1554,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             mIsCancelled = true;
             logInfo("Cancelling the request (" + mConnectionUrl + ")");
 
-            // TODO: fixme
+            OkHttpUtils.cancelCallWithTag(mOKHttpClient, objectTag);
 //            AndroidNetworking.forceCancel(objectTag);
         }
     }
