@@ -2,6 +2,8 @@ package com.nimasystems.lightcast.utils;
 
 import android.webkit.MimeTypeMap;
 
+import androidx.annotation.NonNull;
+
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -105,6 +107,20 @@ public class FileUtils {
         }
 
         return true;
+    }
+
+    @NonNull
+    public static String getMimetype(@NonNull File file) {
+        String type = null;
+        final String url = file.toString();
+        final String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+        }
+        if (type == null) {
+            type = "image/*"; // fallback type. You might set it to */*
+        }
+        return type;
     }
 
     public static String getMimetype(String filepath) {

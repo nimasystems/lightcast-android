@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 
 import com.nimasystems.lightcast.encryption.AESCrypt;
 import com.nimasystems.lightcast.logging.LcLogger;
+import com.nimasystems.lightcast.utils.FileUtils;
 import com.nimasystems.lightcast.utils.StringUtils;
 
 import org.cryptonode.jncryptor.AES256JNCryptor;
@@ -1239,9 +1240,26 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             for (String key : fparams.keySet()) {
                 RequestParams.FileWrapper obj = fparams.get(key);
 
+                if (obj.file == null) {
+                    continue;
+                }
+
                 if (obj != null) {
-                    requestBodyBuilder.addFormDataPart(key, obj.customFileName,
-                            RequestBody.create(obj.file, MediaType.parse(obj.contentType)));
+                    String contentType;
+
+                    if (obj.contentType != null &&
+                            obj.contentType.length() > 0) {
+                        contentType = obj.contentType;
+                    } else {
+                        contentType = FileUtils.getMimetype(obj.file);
+                    }
+
+                    contentType = contentType == null ? "application/binary" : contentType;
+
+                    requestBodyBuilder.addFormDataPart(key,
+                            obj.customFileName != null &&
+                                    obj.customFileName.length() > 0 ? obj.customFileName : obj.file.getName(),
+                            RequestBody.create(obj.file, MediaType.parse(contentType)));
                 }
             }
 
