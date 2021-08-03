@@ -1,4 +1,5 @@
-<manifest package="com.nimasystems.lightcast">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.nimasystems.lightcast">
 
-    <application />
+    <application android:allowBackup="true" />
 </manifest>
