@@ -10,7 +10,7 @@ public abstract class CopyOnWriteSet<E> implements Set<E> {
     private final AtomicReference<Set<E>> ref;
 
     protected CopyOnWriteSet(Collection<? extends E> c) {
-        ref = new AtomicReference<Set<E>>(new HashSet<>(c));
+        ref = new AtomicReference<>(new HashSet<>(c));
     }
 
     @Override

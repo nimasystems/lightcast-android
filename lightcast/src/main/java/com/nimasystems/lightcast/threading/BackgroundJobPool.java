@@ -57,51 +57,43 @@ public class BackgroundJobPool {
 
     public void execute(final List<BackgroundJob> jobs, final BackgroundTasksExecutorListener listener) {
 
-        this.executor.submit(new Runnable() {
-            @Override
-            public void run() {
-                final CountDownLatch latch = new CountDownLatch(jobs.size());
+        this.executor.submit(() -> {
+            final CountDownLatch latch = new CountDownLatch(jobs.size());
 
-                final List<OperationResponse> responses = new ArrayList<>();
+            final List<OperationResponse> responses = new ArrayList<>();
 
-                final BackgroundTaskExecutionCallback execCallback = new BackgroundTaskExecutionCallback() {
-                    @Override
-                    public void signalCompleted(OperationResponse taskResponse) {
+            final BackgroundTaskExecutionCallback execCallback = taskResponse -> {
 
-                        if (taskResponse != null) {
-                            responses.add(taskResponse);
+                if (taskResponse != null) {
+                    responses.add(taskResponse);
+                }
+
+                latch.countDown();
+            };
+
+            for (final BackgroundJob job : jobs) {
+                executor.submit((Callable<Void>) () -> {
+                    try {
+                        job.run(executor, execCallback);
+                    } catch (Exception e) {
+                        if (mLogger != null) {
+                            mLogger.err("Error while waiting for thread completion");
                         }
-
-                        latch.countDown();
                     }
-                };
+                    return null;
+                });
+            }
 
-                for (final BackgroundJob job : jobs) {
-                    executor.submit(new Callable<Void>() {
-                        public Void call() {
-                            try {
-                                job.run(executor, execCallback);
-                            } catch (Exception e) {
-                                if (mLogger != null) {
-                                    mLogger.err("Error while waiting for thread completion");
-                                }
-                            }
-                            return null;
-                        }
-                    });
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                if (mLogger != null) {
+                    mLogger.err("Error while waiting for thread completion");
                 }
+            }
 
-                try {
-                    latch.await();
-                } catch (InterruptedException e) {
-                    if (mLogger != null) {
-                        mLogger.err("Error while waiting for thread completion");
-                    }
-                }
-
-                if (listener != null) {
-                    listener.OnExecutionComplete(true, responses);
-                }
+            if (listener != null) {
+                listener.OnExecutionComplete(true, responses);
             }
         });
     }

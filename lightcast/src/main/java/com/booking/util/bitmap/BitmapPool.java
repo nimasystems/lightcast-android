@@ -66,15 +66,12 @@ public class BitmapPool {
 
         @Override
         public void recycle() {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (--referenceCounter == 0) {
-                        if (isRecycled) {
-                            bitmap.recycle();
-                        } else {
-                            bitmaps.push(bitmap);
-                        }
+            handler.post(() -> {
+                if (--referenceCounter == 0) {
+                    if (isRecycled) {
+                        bitmap.recycle();
+                    } else {
+                        bitmaps.push(bitmap);
                     }
                 }
             });

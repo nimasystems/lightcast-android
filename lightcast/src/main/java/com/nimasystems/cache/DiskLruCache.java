@@ -153,7 +153,7 @@ public final class DiskLruCache implements Closeable {
      * This cache uses a single background thread to evict entries.
      */
     private final ExecutorService executorService = new ThreadPoolExecutor(0,
-            1, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+            1, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     private long size = 0;
     private Writer journalWriter;
     private int redundantOpCount;

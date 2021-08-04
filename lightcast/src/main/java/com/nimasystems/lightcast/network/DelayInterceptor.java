@@ -24,6 +24,7 @@ public class DelayInterceptor implements Interceptor {
         return mDelayTime;
     }
 
+    @NonNull
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {
 

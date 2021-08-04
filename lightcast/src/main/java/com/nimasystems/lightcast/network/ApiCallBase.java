@@ -895,17 +895,15 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                         }
                     } else {
                         Handler mainHandler = new Handler(mContext.getMainLooper());
-                        Runnable myRunnable = new Runnable() {
-                            public void run() {
-                                if (mIsSuccessful) {
-                                    mDelegate.didFinishTask(ApiCallBase.this);
-                                } else {
-                                    boolean shouldProcess = errorFilterListener == null || errorFilterListener.onError(ApiCallBase.this, mServerError);
+                        Runnable myRunnable = () -> {
+                            if (mIsSuccessful) {
+                                mDelegate.didFinishTask(ApiCallBase.this);
+                            } else {
+                                boolean shouldProcess = errorFilterListener == null || errorFilterListener.onError(ApiCallBase.this, mServerError);
 
-                                    if (shouldProcess) {
-                                        mDelegate.didFinishTaskWithError(ApiCallBase.this, mLastErrorCode,
-                                                mLastErrorMessage, mServerError);
-                                    }
+                                if (shouldProcess) {
+                                    mDelegate.didFinishTaskWithError(ApiCallBase.this, mLastErrorCode,
+                                            mLastErrorMessage, mServerError);
                                 }
                             }
                         };
@@ -913,18 +911,16 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                     }
                 } else {
                     Handler mainHandler = new Handler(mContext.getMainLooper());
-                    Runnable myRunnable = new Runnable() {
-                        public void run() {
-                            if (mIsSuccessful) {
-                                mDelegate.didFinishTask(ApiCallBase.this);
-                            } else {
-                                boolean shouldProcess = errorFilterListener == null || errorFilterListener.onError(ApiCallBase.this, mServerError);
+                    Runnable myRunnable = () -> {
+                        if (mIsSuccessful) {
+                            mDelegate.didFinishTask(ApiCallBase.this);
+                        } else {
+                            boolean shouldProcess = errorFilterListener == null || errorFilterListener.onError(ApiCallBase.this, mServerError);
 
-                                if (shouldProcess) {
-                                    mDelegate.didFinishTaskWithError(ApiCallBase.this,
-                                            mLastErrorCode, mLastErrorMessage,
-                                            mServerError);
-                                }
+                            if (shouldProcess) {
+                                mDelegate.didFinishTaskWithError(ApiCallBase.this,
+                                        mLastErrorCode, mLastErrorMessage,
+                                        mServerError);
                             }
                         }
                     };
@@ -978,13 +974,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     }
 
     public static HostnameVerifier getApprovedHostnameVerifier() {
-        return new HostnameVerifier() {
-            @SuppressLint("BadHostnameVerifier")
-            @Override
-            public boolean verify(String hostname, SSLSession session) {
-                return true;
-            }
-        };
+        return (hostname, session) -> true;
     }
 
     protected boolean parseResponse() {
@@ -1240,11 +1230,11 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             for (String key : fparams.keySet()) {
                 RequestParams.FileWrapper obj = fparams.get(key);
 
-                if (obj.file == null) {
-                    continue;
-                }
-
                 if (obj != null) {
+                    if (obj.file == null) {
+                        continue;
+                    }
+
                     String contentType;
 
                     if (obj.contentType != null &&
@@ -1253,8 +1243,6 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                     } else {
                         contentType = FileUtils.getMimetype(obj.file);
                     }
-
-                    contentType = contentType == null ? "application/binary" : contentType;
 
                     requestBodyBuilder.addFormDataPart(key,
                             obj.customFileName != null &&
@@ -1289,13 +1277,15 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         } else {
             // prepare the GET params and make the url query
             if (preparedRequestParams != null) {
-                HttpUrl.Builder httpBuilder = HttpUrl.parse(mConnectionUrl).newBuilder();
-                if (preparedRequestParams != null) {
+                HttpUrl obj = HttpUrl.parse(mConnectionUrl);
+
+                if (obj != null) {
+                    HttpUrl.Builder httpBuilder = obj.newBuilder();
                     for (Map.Entry<String, String> param : preparedRequestParams.entrySet()) {
                         httpBuilder.addQueryParameter(param.getKey(), param.getValue());
                     }
+                    requestBuilder.url(httpBuilder.build());
                 }
-                requestBuilder.url(httpBuilder.build());
             }
         }
 
@@ -1349,27 +1339,24 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
         onConnectionStart();
 
-        Runnable callRunnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Response response = mOKHttpClient.newCall(request).execute();
+        Runnable callRunnable = () -> {
+            try {
+                Response response = mOKHttpClient.newCall(request).execute();
 
-                    int responseCode = response.code();
-                    boolean success = (responseCode == 200 || responseCode == 304);
+                int responseCode = response.code();
+                boolean success = (responseCode == 200 || responseCode == 304);
 
-                    if (!success) {
-                        onConnectionFailure(response, null);
-                    } else {
-                        onConnectionSuccess(response);
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    onConnectionFailure(null, null);
-                } finally {
-                    onConnectionFinish();
+                if (!success) {
+                    onConnectionFailure(response, null);
+                } else {
+                    onConnectionSuccess(response);
                 }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                onConnectionFailure(null, null);
+            } finally {
+                onConnectionFinish();
             }
         };
 
@@ -1420,12 +1407,9 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
         if (authEnabled && authUsername != null && authPassword != null) {
             //logDebug("HTTP AUTH ENABLED");
 
-            httpClientBuilder.authenticator(new Authenticator() {
-                @Override
-                public Request authenticate(@Nullable Route route, @NonNull Response response) {
-                    String credential = Credentials.basic(authUsername, authPassword);
-                    return response.request().newBuilder().header("Authorization", credential).build();
-                }
+            httpClientBuilder.authenticator((route, response) -> {
+                String credential = Credentials.basic(authUsername, authPassword);
+                return response.request().newBuilder().header("Authorization", credential).build();
             });
         }
 
@@ -1489,19 +1473,15 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
     }
 
     public static Interceptor getDebugInterceptor(@NonNull final LcLogger logger) {
-        return new Interceptor() {
-            @NonNull
-            @Override
-            public Response intercept(@NonNull Chain chain) throws IOException {
+        return chain -> {
 
-                Response response = chain.proceed(chain.request());
+            Response response = chain.proceed(chain.request());
 
-                String responseBodyString = response.peekBody(Long.MAX_VALUE).string();
-                logger.debug("\n\uD83D\uDC1E " + "R: " + chain.request().url() + "\n\n" +
-                        responseBodyString + "\n\n \uD83D\uDC1E\n");
+            String responseBodyString = response.peekBody(Long.MAX_VALUE).string();
+            logger.debug("\n\uD83D\uDC1E " + "R: " + chain.request().url() + "\n\n" +
+                    responseBodyString + "\n\n \uD83D\uDC1E\n");
 
-                return response;
-            }
+            return response;
         };
     }
 

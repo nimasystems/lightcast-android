@@ -35,6 +35,7 @@ public class UnauthorisedInterceptor implements Interceptor {
         mContext = context;
     }
 
+    @NonNull
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {
         Response response = chain.proceed(chain.request());
