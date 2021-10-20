@@ -128,4 +128,10 @@ public class OperationResponse {
     public boolean isSuccessful() {
         return isSuccessful;
     }
+
+    @NonNull
+    public String toString() {
+        return getMessage() + " (Code: " + getCode() + "), Server error: " + (serverError != null ?
+                serverError.toString() : "");
+    }
 }
