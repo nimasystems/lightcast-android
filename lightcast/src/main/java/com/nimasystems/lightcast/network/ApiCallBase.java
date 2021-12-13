@@ -37,12 +37,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import okhttp3.Authenticator;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Credentials;
@@ -57,7 +55,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import okhttp3.Route;
 
 abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
 
@@ -763,7 +760,7 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                 + mResponseStatusCode + ", Error: " + errorBody);
     }
 
-    protected void handleConnectionSuccess(final @NonNull Response response, final @Nullable ResponseBody responseBody) {
+    protected void handleConnectionSuccess(final @NonNull Response response, final @Nullable ResponseBody responseBody) throws IOException, JSONException {
 
         try {
             mResponseJson = responseBody != null ? new JSONObject(responseBody.string()) : null;
@@ -771,6 +768,8 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
             mResponseJson = null;
             e.printStackTrace();
             logError("JSON read error: " + e.getMessage());
+
+            throw e;
         }
 
         /*logDebug("Connection success (" + mConnectionUrl + "), Status code: "
@@ -787,7 +786,12 @@ abstract public class ApiCallBase implements UnauthorizedInterceptorListener {
                 mResponseBody == null;
 
         if (mResponseIsSuccess) {
-            handleConnectionSuccess(response, mResponseBody);
+            try {
+                handleConnectionSuccess(response, mResponseBody);
+            } catch (Exception e) {
+                mResponseIsSuccess = false;
+                handleConnectionError(response, e);
+            }
         } else {
             handleConnectionError(response, null);
         }
